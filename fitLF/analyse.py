@@ -34,7 +34,7 @@ class analyse():
 
         self.ID = ID
 
-        self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'r')) 
+        self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
 
         self.parameters = self.samples.keys()
 
@@ -51,13 +51,13 @@ class analyse():
 
         # --- load observations
 
-        self.observations = pickle.load(open(self.ID+'/observations.p', 'r')) 
+        self.observations = pickle.load(open(self.ID+'/observations.p', 'rb')) 
 
         # --- try to load input parameters
 
         try:
         
-            self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'r')) 
+            self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'rb')) 
         
         except:
         
