@@ -30,7 +30,7 @@ binw = 0.1
 
 for fake_obs in fake_observations:
 
-    print fake_obs
+    print(fake_obs)
 
     bin_edges = np.arange(fake_obs['log10L_limit'], fake_obs['log10L_limit']+1.5, binw)
 

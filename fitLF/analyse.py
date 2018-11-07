@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib import cm
-import cPickle as pickle
+import pickle
 import scipy
 
-import models
+from . import models
 
 
 

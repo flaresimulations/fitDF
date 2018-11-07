@@ -19,7 +19,7 @@ class fitter():
         self.ID = ID
         self.observations = observations
 
-        pickle.dump(observations, open(self.ID+'/observations.p', 'w'))
+        pickle.dump(observations, open(self.ID+'/observations.p', 'wb'))
 
         print('fitLFv0.8')
                  
@@ -94,7 +94,7 @@ class fitter():
         
             samples[p] = chains[:,ip] 
 
-        pickle.dump(samples, open(self.ID+'/'+sample_save_ID+'.p', 'w'))
+        pickle.dump(samples, open(self.ID+'/'+sample_save_ID+'.p', 'wb'))
 
         
         

@@ -6,21 +6,14 @@ import fitLF.analyse as analyse
 
 import numpy as np
 import matplotlib.pyplot as plt
-import cPickle as pickle
+import pickle
 
 import mpmath
 
-plt.style.use('simple')
 
-
-plt.style.use('simple')
+# plt.style.use('simple')
 fig = plt.figure(figsize=(3,3))
 ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
-
-
-
-
-
 
 
 
@@ -37,7 +30,7 @@ np.random.seed(5)
 parameters = {'log10L*': 28.5, 'log10phi*': -2., 'alpha': -2.5}
 LF = models.Schechter(parameters)
 
-pickle.dump(parameters, open(ID+'/input_parameters.p','w'))
+pickle.dump(parameters, open(ID+'/input_parameters.p','wb'))
 
 
 
@@ -59,7 +52,7 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
 
     logV = np.log10(volume)
 
-    print '------------', log10L_limit, volume
+    print('------------', log10L_limit, volume)
 
     # -------------------- sample input LF and plot
 
@@ -77,7 +70,7 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
 
     N_sample = models.bin(sample, volume, bin_edges) # --- bin the sampled LF with the same bins 
 
-    for bc,n,n_sample in zip(bin_centres, N, N_sample): print bc, n, n_sample
+    for bc,n,n_sample in zip(bin_centres, N, N_sample): print(bc, n, n_sample)
 
     # -------------------- plot sampled and true LF
 
@@ -94,7 +87,7 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
 
     for bc, n in zip(bin_centres, N_sample): 
 
-        print n, models.poisson_confidence_interval(n, 0.68)
+        print(n, models.poisson_confidence_interval(n, 0.68))
 
         if n>0:
             ax.plot([bc]*2, np.log10(models.poisson_confidence_interval(n, 0.68)) -np.log10(binw) - logV, c=c, lw=1, alpha = 1.0) 
@@ -109,7 +102,7 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
     if np.max(phi)>mxphi: mxphi = np.max(phi)
 
 
-pickle.dump(observations, open(ID+'/fake_observations.p', 'w')) # --- save sampled LFs
+pickle.dump(observations, open(ID+'/fake_observations.p', 'wb')) # --- save sampled LFs
 
 
 
