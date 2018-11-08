@@ -98,7 +98,8 @@ class Schechter():
         x = 10**y
         alpha = self.sp['alpha']
     
-        num = float(mpmath.gammainc(alpha+1.,x))*self.sp['phi*'] # integral from log10L to L=\infty
+        # num = float(mpmath.gammainc(alpha+1.,x))*self.sp['phi*'] # integral from log10L to L=\infty
+        num = float(scipy.integrate.quad(gamma, x,np.inf,args=alpha)[0])*self.sp['phi*']
 
         return num   
             
