@@ -1,8 +1,5 @@
 import numpy as np
-import mpmath
 import scipy.stats
-
-   
 
 geo=(4.*np.pi*(100.*10.*3.0867*10**16)**2)#factor relating the L to M in cm^2
 
@@ -98,7 +95,6 @@ class Schechter():
         x = 10**y
         alpha = self.sp['alpha']
     
-        # num = float(mpmath.gammainc(alpha+1.,x))*self.sp['phi*'] # integral from log10L to L=\infty
         num = float(scipy.integrate.quad(gamma, x,np.inf,args=alpha)[0])*self.sp['phi*']
 
         return num   

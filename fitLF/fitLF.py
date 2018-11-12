@@ -3,8 +3,6 @@
 import numpy as np
 import emcee
 import scipy.stats
-import mpmath
-#import cPickle as pickle
 import pickle
 from . import models
 import scipy.misc
@@ -34,10 +32,6 @@ class fitter():
         self.priors['log10phi*'] = scipy.stats.uniform(loc = -4.0, scale = 4.0) 
         self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 2.0) 
         self.priors['log10L*'] = scipy.stats.uniform(loc = 28., scale = 2.0) 
-
-
-
-
 
 
 
