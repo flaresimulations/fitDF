@@ -6,22 +6,17 @@ import fitLF.analyse as analyse
 
 import numpy as np
 import matplotlib.pyplot as plt
-import cPickle as pickle
+import pickle
 
 import mpmath
 
-plt.style.use('simple')
+# plt.style.use('simple')
 
-ID = 'test_2volumes'
-
-
-
-
-
+ID = 'example'
 
 # -------------------- read in observations
 
-fake_observations = pickle.load(open(ID+'/fake_observations.p')) # list of dictionaries containing log10L_limit, volume, sample
+fake_observations = pickle.load(open(ID+'/fake_observations.p','rb')) # list of dictionaries containing log10L_limit, volume, sample
 
 
 observations = [] # fit LF input list
@@ -42,7 +37,7 @@ for fake_obs in fake_observations:
 # -------------------- fit sampled LF and plot median fit
 
 fitter = fitLF.fitter(observations, ID = ID)
-fitter.fit(nsamples = 2000, burn = 500)
+fitter.fit(nsamples = 500, burn = 100)
 # fitter.fit(nsamples = 2000, burn = 500, sample_save_ID = 'a_different_ID') # to save the samples as something other than samples.p
 
 

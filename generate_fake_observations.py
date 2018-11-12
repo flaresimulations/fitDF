@@ -15,10 +15,7 @@ import mpmath
 fig = plt.figure(figsize=(3,3))
 ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
-
-
-# ID = 'test_2volumes'
-ID = 'test_1volumes'
+ID = 'example'
 
 if not os.path.exists(ID): os.mkdir(ID)
 
