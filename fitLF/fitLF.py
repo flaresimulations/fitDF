@@ -92,12 +92,10 @@ class fitter():
     
         for ip, p in enumerate(self.parameters): 
         
-            samples[p] = chains[:,ip] 
+            samples[p] = chains[:,ip]
 
         pickle.dump(samples, open(self.ID+'/'+sample_save_ID+'.p', 'wb'))
-
         
-        
-
+        return samples
 
 

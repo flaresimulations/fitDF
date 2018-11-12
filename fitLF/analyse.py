@@ -68,12 +68,14 @@ class analyse():
  
     def LF(self, output_filename = False):
     
-        plt.style.use('simple')
+        # plt.style.use('simple')
         
         fig = plt.figure(figsize=(3,3 ))
 
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
+        bw = 0.01
+        log10L = np.arange(27.5, 31.0, bw)
 
         # --- plot input LF if available
 
@@ -81,9 +83,6 @@ class analyse():
 
             ax.axvline( self.input_parameters['log10L*'], c='k', alpha = 0.1)
             ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
-
-            bw = 0.01
-            log10L = np.arange(27.5, 31.0, bw)
             
             inputLF = models.Schechter(self.input_parameters)
             
@@ -185,60 +184,50 @@ class analyse():
         fig.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
 
 
-
         # ---- loop over parameters
-
-        for i in np.arange(n):
-            for j in np.arange(n):
-                
+        
+        for i,ikey in enumerate(self.parameters):
+            for j,jkey in enumerate(self.parameters):
                 
                 # axes[i,j].text(0.5,0.5,str(i)+str(j), transform=axes[i,j].transAxes) # label panels
                 
                 axes[i,j].locator_params(axis = 'x', nbins=3)
                 axes[i,j].locator_params(axis = 'y', nbins=3)
       
-                pi = self.parameters[i]
-                pj = self.parameters[j]
-                    
+                # pi = self.parameters[ikey]
+                # pj = self.parameters[jkey]
             
                 if i!=0 and j==0 and j<n-1:
-                
-                    axes[i,j].set_ylabel(r'${\rm'+parameter_labels[pi]+'}$')
+                    #axes[i,j].set_ylabel(r'${\rm'+parameter_labels[pi]+'}$')
+                    axes[i,j].set_ylabel(r'${\rm%s}$'%ikey)
                     
                 if i==(n-1):
-                
-                    axes[i,j].set_xlabel(r'${\rm'+parameter_labels[pj]+'}$')
-
-
-                
+                    #axes[i,j].set_xlabel(r'${\rm'+parameter_labels[pj]+'}$')
+                    axes[i,j].set_xlabel(r'${\rm%s}$'%jkey)
 
 
                 if j == i:
-                
-                    median = np.percentile(self.samples[pi], 50)
+                    median = np.percentile(self.samples[ikey], 50)
                 
                     if ranges:
-                    
-                        range = ranges[pi]
+                        range = ranges[ikey]
                     
                     else:
-                
-                        IQR = np.percentile(self.samples[pi], 75) - np.percentile(self.samples[pi], 25)
-                        
+                        IQR = np.percentile(self.samples[ikey], 75) - np.percentile(self.samples[ikey], 25)
                         range = [median-3*IQR, median+3*IQR]
 
                     
                 
-                    N,b,p = axes[i,j].hist(self.samples[pi], bins = bins, range = range, color = '0.7', edgecolor = '0.7')
+                    N,b,p = axes[i,j].hist(self.samples[ikey], bins = bins, range = range, color = '0.7', edgecolor = '0.7')
                 
                     mxN = np.max(N)
                 
-                    if self.input_parameters: axes[i,j].axvline(self.input_parameters[pj], lw = 1, c = 'k', alpha = 0.2)
+                    if self.input_parameters: axes[i,j].axvline(self.input_parameters[jkey], lw = 1, c = 'k', alpha = 0.2)
                 
                     axes[i,j].scatter(median,mxN*1.3,c='k',s=5)
                 
                 
-                    axes[i,j].plot([np.percentile(self.samples[pi], 16.), np.percentile(self.samples[pi], 84.)],[mxN*1.3]*2,c='k',lw=1)
+                    axes[i,j].plot([np.percentile(self.samples[ikey], 16.), np.percentile(self.samples[ikey], 84.)],[mxN*1.3]*2,c='k',lw=1)
                 
                     axes[i,j].set_xlim(range)
                     axes[i,j].set_ylim([0.,mxN*2.])
@@ -259,27 +248,27 @@ class analyse():
                         else:
                             c = 'k'
                         
-                        axes[i,j].axhline(self.input_parameters[pi], lw = 1, c = c, alpha = 0.2)
-                        axes[i,j].axvline(self.input_parameters[pj], lw = 1, c = c, alpha = 0.2)
+                        axes[i,j].axhline(self.input_parameters[ikey], lw = 1, c = c, alpha = 0.2)
+                        axes[i,j].axvline(self.input_parameters[jkey], lw = 1, c = c, alpha = 0.2)
                     
     
                     if ranges:
 
-                        rangei = ranges[pi]
-                        rangej = ranges[pj]                    
+                        rangei = ranges[ikey]
+                        rangej = ranges[jkey]                    
                     
                     else:
     
-                        IQR = np.percentile(self.samples[pi], 75) - np.percentile(self.samples[pi], 25)
-                        median = np.percentile(self.samples[pi], 50)
+                        IQR = np.percentile(self.samples[ikey], 75) - np.percentile(self.samples[ikey], 25)
+                        median = np.percentile(self.samples[ikey], 50)
                         rangei = [median-3*IQR, median+3*IQR]
     
-                        IQR = np.percentile(self.samples[pj], 75) - np.percentile(self.samples[pj], 25)
-                        median = np.percentile(self.samples[pj], 50)
+                        IQR = np.percentile(self.samples[jkey], 75) - np.percentile(self.samples[jkey], 25)
+                        median = np.percentile(self.samples[jkey], 50)
                         rangej = [median-3*IQR, median+3*IQR]
                     
     
-                    H, xe, ye = np.histogram2d(self.samples[pj], self.samples[pi], bins = bins, range = [rangej, rangei]) 
+                    H, xe, ye = np.histogram2d(self.samples[jkey], self.samples[ikey], bins = bins, range = [rangej, rangei]) 
                         
                     H = H.T
   
