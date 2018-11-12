@@ -1,5 +1,7 @@
 import numpy as np
 import scipy.stats
+import scipy.special
+import scipy.integrate
 
 geo=(4.*np.pi*(100.*10.*3.0867*10**16)**2)#factor relating the L to M in cm^2
 
@@ -88,14 +90,18 @@ class Schechter():
      
         return np.log10(self.sp['phi*']) + np.log10(np.log(10.))  + y*(alpha+1.) + -10**y/np.log(10.)
      
-     
+    @staticmethod
+    def _integ(x,a):
+        return x**(a-1) * np.exp(-x)
+
     def CulmPhi(self,log10L):
     
         y = log10L - self.sp['log10L*']
         x = 10**y
         alpha = self.sp['alpha']
-    
-        num = float(scipy.integrate.quad(gamma, x,np.inf,args=alpha)[0])*self.sp['phi*']
+
+        gamma = scipy.integrate.quad(self._integ, x,np.inf,args=alpha+1)[0]
+        num = gamma*self.sp['phi*']
 
         return num   
             
