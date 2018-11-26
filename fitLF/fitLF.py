@@ -29,9 +29,9 @@ class fitter():
         
         # This distribution is constant between loc and loc + scale.
         
-        self.priors['log10phi*'] = scipy.stats.uniform(loc = -4.0, scale = 4.0) 
-        self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 2.0) 
-        self.priors['log10L*'] = scipy.stats.uniform(loc = 28., scale = 2.0) 
+        self.priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
+        self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
+        self.priors['log10L*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
 
 
 

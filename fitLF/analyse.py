@@ -8,8 +8,6 @@ import scipy
 from . import models
 
 
-
-
 # sys.path.insert(0, os.path.abspath('..'))
 
 parameter_labels = {}
@@ -17,15 +15,6 @@ parameter_labels = {}
 parameter_labels['log10L*'] = r'\log_{10}(L_{*})'
 parameter_labels['log10phi*'] = r'\log_{10}(\phi_{*}/Mpc^{-3})'
 parameter_labels['alpha'] = r'\alpha'
-
-
-
-
-
-
-
-
-
 
 
 class analyse():
@@ -75,7 +64,7 @@ class analyse():
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
         bw = 0.01
-        log10L = np.arange(27.5, 31.0, bw)
+        log10L = np.arange(27, 31.0, bw)
 
         # --- plot input LF if available
 
