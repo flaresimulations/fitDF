@@ -11,27 +11,28 @@ import math
 class fitter():
 
 
-    def __init__(self, observations, ID = 'test'):
+    def __init__(self, observations, model, priors, output_directory = 'test'):
 
-
-        self.ID = ID
+        self.output_directory = output_directory
         self.observations = observations
 
-        pickle.dump(observations, open(self.ID+'/observations.p', 'wb'))
+        # pickle.dump(observations, open(self.output_directory+'/observations.p', 'wb'))
 
-        print('fitLFv0.8')
-                 
-        self.parameters = ['log10phi*','alpha','log10L*']
+        print('fitDFv0.9')
+       
+        self.model = model
+ 
+        self.parameters = ['phi*','alpha','D*'] # ['log10phi*','alpha','log10D*']
 
         # ----- define priors
         
-        self.priors = {}
+        self.priors = priors # {}
         
         # This distribution is constant between loc and loc + scale.
         
-        self.priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
-        self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
-        self.priors['log10L*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
+        # self.priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
+        # self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
+        # self.priors['log10D*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
 
 
 
@@ -39,7 +40,8 @@ class fitter():
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
     
-        model_LF = models.Schechter(p)
+        # model_LF = models.Schechter(p)
+        self.model.update_params(p)
 
         lp = np.sum([self.priors[parameter].logpdf(p[parameter]) for parameter in self.parameters])
            
@@ -50,7 +52,7 @@ class fitter():
         
         for obs in self.observations:
     
-            N_exp = model_LF.N(obs['volume'], obs['bin_edges'])
+            N_exp = self.model.N(obs['volume'], obs['bin_edges'])
 
             s = N_exp>0. # technically this should always be true but may break at very low N hence this 
 
@@ -88,7 +90,7 @@ class fitter():
         
             samples[p] = chains[:,ip]
 
-        pickle.dump(samples, open(self.ID+'/'+sample_save_ID+'.p', 'wb'))
+        pickle.dump(samples, open(self.output_directory+'/'+sample_save_ID+'.p', 'wb'))
         
         return samples
 

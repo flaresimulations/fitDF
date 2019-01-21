@@ -61,30 +61,33 @@ def poisson_confidence_interval(n,p):
 
 class Schechter():
 
-    def __init__(self,sp): #schechter_params={'L*':,'phi*':,'alpha':} or {'M*':,'phi*':,'alpha':}
+    def __init__(self, sp=None): #schechter_params={'L*':,'phi*':,'alpha':} or {'M*':,'phi*':,'alpha':}
 
-        # print sp
+#         if 'M*' in sp.keys():
+#             sp['L*'] = 10**(-0.4*(sp['M*']+48.6))*geo
+#             
+#         if 'L*' in sp.keys():
+#             sp['log10L*'] = np.log10(sp['L*'])
+#           
+#         if 'log10(L*)' in sp.keys():
+#             sp['log10L*'] = sp['log10(L*)']
+#           
+#         if 'log10(phi*)' in sp.keys():
+#             sp['log10phi*'] = sp['log10(phi*)']
+#           
+#         sp['phi*'] =10**sp['log10phi*']
+        if sp is not None:
+            self.sp = sp
+        else:
+            self.sp = {'D*': None, 'phi*': None, 'alpha': None}
+              
 
-
-        if 'M*' in sp.keys():
-            sp['L*'] = 10**(-0.4*(sp['M*']+48.6))*geo
-            
-        if 'L*' in sp.keys():
-            sp['log10L*'] = np.log10(sp['L*'])
-          
-        if 'log10(L*)' in sp.keys():
-            sp['log10L*'] = sp['log10(L*)']
-          
-        if 'log10(phi*)' in sp.keys():
-            sp['log10phi*'] = sp['log10(phi*)']
-          
-        sp['phi*'] =10**sp['log10phi*']
-             
-        self.sp=sp
-               
-    def log10phi(self, log10L):
+    def update_params(self, sp):
+        self.sp = sp
+ 
+    def log10phi(self, D):
      
-        y = log10L - self.sp['log10L*']
+        y = D - self.sp['D*']
         
         alpha = self.sp['alpha']
      
@@ -94,9 +97,9 @@ class Schechter():
     def _integ(x,a):
         return x**(a-1) * np.exp(-x)
 
-    def CulmPhi(self,log10L):
+    def CulmPhi(self,D):
     
-        y = log10L - self.sp['log10L*']
+        y = D - self.sp['D*']
         x = 10**y
         alpha = self.sp['alpha']
 
@@ -105,17 +108,6 @@ class Schechter():
 
         return num   
             
-        
-    def CDF(self, log10L_limit, normed = True):
-    
-        log10Ls = np.arange(self.sp['log10L*']+5.,log10L_limit-0.01,-0.01)
-    
-        CDF = np.array([self.CulmPhi(log10L) for log10L in log10Ls])
-    
-        if normed: CDF /= CDF[-1]
-    
-        return log10Ls, CDF 
-        
 
     def N(self, volume, bin_edges):
     
@@ -126,23 +118,33 @@ class Schechter():
         return -(CulmN[1:] - CulmN[0:-1])
 
 
+    # def CDF(self, log10L_limit, normed = True):
+    # 
+    #     log10Ls = np.arange(self.sp['log10L*']+5.,log10L_limit-0.01,-0.01)
+    # 
+    #     CDF = np.array([self.CulmPhi(log10L) for log10L in log10Ls])
+    # 
+    #     if normed: CDF /= CDF[-1]
+    # 
+    #     return log10Ls, CDF 
+        
     # -------------------------------------------
     # ----------- sample the luminosity function  in a given volume.
 
 
-    def sample(self, volume, log10L_limit): # --- define volume
-            
-        L, CDF = self.CDF(log10L_limit, normed=False)
+    # def sample(self, volume, log10L_limit): # --- define volume
+    #         
+    #     L, CDF = self.CDF(log10L_limit, normed=False)
 
-        n2 = self.CulmPhi(log10L_limit)*volume
+    #     n2 = self.CulmPhi(log10L_limit)*volume
 
-        n = np.random.poisson(volume * CDF[-1]) # --- I don't think this is strictly correct but I can't think of a better approach
+    #     n = np.random.poisson(volume * CDF[-1]) # --- I don't think this is strictly correct but I can't think of a better approach
 
-        nCDF = CDF/CDF[-1]
-        
-        log10L_sample = np.interp(np.random.random(n), nCDF, L)
-        
-        return log10L_sample
+    #     nCDF = CDF/CDF[-1]
+    #     
+    #     log10L_sample = np.interp(np.random.random(n), nCDF, L)
+    #     
+    #     return log10L_sample
 
     
 
@@ -155,10 +157,3 @@ def bin(log10L_sample, volume, bins):
          
         return N_sample
     
-
-
-
-  
- 
-
-
