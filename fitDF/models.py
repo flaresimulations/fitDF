@@ -89,7 +89,7 @@ class Schechter():
      
     @staticmethod
     def _integ(x,a):
-        return x**(a-1) * np.exp(-x)
+        return x**a * np.exp(-x)
 
 
     def CulmPhi(self,D):
@@ -102,7 +102,7 @@ class Schechter():
         x = 10**y
         alpha = self.sp['alpha']
 
-        gamma = scipy.integrate.quad(self._integ, x,np.inf,args=alpha+1)[0]
+        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
         num = gamma*(10**self.sp['log10phi*'])
 
         return num   
@@ -116,7 +116,6 @@ class Schechter():
             volume (float)
             bin_edges (array, float)
         """ 
-
     
         CulmN = np.array([self.CulmPhi(x) for x in bin_edges])*volume
         

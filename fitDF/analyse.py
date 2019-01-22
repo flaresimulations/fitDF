@@ -10,7 +10,7 @@ from . import models
 
 class analyse():
 
-    def __init__(self, ID = 'test', sample_save_ID = 'samples'):
+    def __init__(self, ID = 'test', sample_save_ID = 'samples', observations = False):
 
         self.ID = ID
 
@@ -30,8 +30,10 @@ class analyse():
 
 
         # --- load observations
+        # if observations:
+        #pickle.load(open(self.ID+'/observations.p', 'rb')) 
+        self.observations = observations
 
-        self.observations = pickle.load(open(self.ID+'/observations.p', 'rb')) 
 
         # --- try to load input parameters
 
@@ -44,16 +46,16 @@ class analyse():
             self.input_parameters = False
 
  
-    def LF(self, output_filename = False):
+    def LF(self, bins=np.arange(8,13,0.01),  output_filename = False, observations=False):
     
         # plt.style.use('simple')
         
-        fig = plt.figure(figsize=(3,3 ))
+        fig = plt.figure(figsize=(10,10))
 
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
-        bw = 0.01
-        log10L = np.arange(27, 31.0, bw)
+        # bw = 0.01
+        # log10L = np.arange(27, 31.0, bw)
 
         # --- plot input LF if available
 
@@ -64,64 +66,60 @@ class analyse():
             
             inputLF = models.Schechter(self.input_parameters)
             
-            ax.plot(log10L, inputLF.log10phi(log10L), c='k', lw=3, alpha = 0.2)
+            ax.plot(bins, inputLF.log10phi(bins), c='k', lw=3, alpha = 0.2)
     
     
         # --- plot median-fit
     
         medianLF = models.Schechter(self.median_fit)
 
-        ax.plot(log10L, medianLF.log10phi(log10L), c='b', lw=1, alpha = 0.5)
+        ax.plot(bins, medianLF.log10phi(bins), c='b', lw=1, alpha = 0.5)
     
-    
-        # --- plot observations
-        
         mxphi = -100.
         mxlogL = 0.
         mnlogL = 100.
-        
-        for obs in self.observations:
 
 
-            logV = np.log10(obs['volume'])
-
-            bin_edges = obs['bin_edges']
-        
-            bin_width = bin_edges[1]-bin_edges[0]
-        
-            bin_centres = bin_edges[0:-1] + 0.5*bin_width
-        
-            c = np.random.rand(3,)
-        
-        
-            for bc, n in zip(bin_centres, obs['N']): 
+        # --- plot observations
+        if observations: 
+            
+            for obs in self.observations:
     
-                if n>0:
-                    ax.plot([bc]*2, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width) - logV, c=c, lw=1, alpha = 1.0) 
-                else:
-                    ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.5, color=c)
-
-            phi = np.log10(obs['N']/bin_width) - logV
-
-            ax.scatter(bin_centres, phi, c=c, s=5)
     
-            if np.max(phi)>mxphi: mxphi = np.max(phi)
-            if bin_centres[-1]>mxlogL: mxlogL = bin_centres[-1]
-            if bin_centres[0]<mnlogL: mnlogL = bin_centres[0]
-        
-        volumes = np.array([obs['volume'] for obs in self.observations])
-        
-        ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
-        ax.set_xlim([mnlogL-0.25, mxlogL+0.25])
-        
-        
-        
-#         ax.set_xlim([self.observations['bin_centres'][0]-0.1, self.observations['bin_centres'][-1]+0.1])
-#         ax.set_ylim([np.log10(np.min(self.observations['phis'][self.observations['phis']>0]))-0.3, np.log10(np.max(self.observations['phis']))+0.3])
+                logV = np.log10(obs['volume'])
     
-        ax.set_xlabel(r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$")
-#         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3})$")
-        ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$")
+                bin_edges = obs['bin_edges']
+            
+                bin_width = bin_edges[1]-bin_edges[0]
+            
+                bin_centres = bin_edges[0:-1] + 0.5*bin_width
+            
+                c = np.random.rand(3,)
+            
+            
+                for bc, n in zip(bin_centres, obs['N']): 
+        
+                    if n>0:
+                        ax.plot([bc]*2, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width) - logV, c=c, lw=1, alpha = 1.0) 
+                    else:
+                        ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.5, color=c)
+    
+                phi = np.log10(obs['N']/bin_width) - logV
+    
+                ax.scatter(bin_centres, phi, c=c, s=5)
+        
+                if np.max(phi)>mxphi: mxphi = np.max(phi)
+                if bin_centres[-1]>mxlogL: mxlogL = bin_centres[-1]
+                if bin_centres[0]<mnlogL: mnlogL = bin_centres[0]
+            
+            volumes = np.array([obs['volume'] for obs in self.observations])        
+            ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
+
+        # ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
+        
+    
+        ax.set_xlabel(r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$", size=12)
+        ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=12)
     
         return fig
 
@@ -145,8 +143,8 @@ class analyse():
         plt.rcParams['text.usetex'] = False
         plt.rcParams['font.size'] = 7 # perhaps should depend on number of parameters to be plotted
 
-        plt.rcParams['ytick.labelsize'] = 4 # perhaps should depend on number of parameters to be plotted
-        plt.rcParams['xtick.labelsize'] = 4 # perhaps should depend on number of parameters to be plotted
+        plt.rcParams['ytick.labelsize'] = 12 # perhaps should depend on number of parameters to be plotted
+        plt.rcParams['xtick.labelsize'] = 12 # perhaps should depend on number of parameters to be plotted
     
         plt.rcParams['ytick.direction'] = 'in'    # direction: in, out, or inout
         plt.rcParams['xtick.direction'] = 'in'    # direction: in, out, or inout
@@ -155,7 +153,7 @@ class analyse():
         plt.rcParams['xtick.minor.visible'] = True
     
 
-        fig, axes = plt.subplots(n,n, figsize = (4,4))
+        fig, axes = plt.subplots(n,n, figsize = (10,10))
 
         left  = 0.125  # the left side of the subplots of the figure
         right = 0.9    # the right side of the subplots of the figure

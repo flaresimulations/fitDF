@@ -3,10 +3,10 @@
 from distutils.core import setup
 ##from setuptools import setup
 
-setup(name='fitLF',
+setup(name='fitDF',
       version='0.8',
-      description='Fit luminosity function with emcee',
-      author='Stephen Wilkins',
-      packages=['fitLF'],
-      #install_requires=['mpmath','scipy','emcee'],
+      description='Fit arbitrary distribution function with emcee',
+      author='Christopher Lovell, Stephen Wilkins',
+      packages=['fitDF'],
+      install_requires=['scipy','emcee'],
      )

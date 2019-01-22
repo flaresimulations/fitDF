@@ -34,7 +34,7 @@ class fitter():
         if not np.isfinite(lp):
             return -np.inf
         
-        lnlike = 0
+        lnlike = 0.
         
         for obs in self.observations:
     
