@@ -106,7 +106,19 @@ class Schechter():
         num = gamma*(10**self.sp['log10phi*'])
 
         return num   
-            
+
+
+    def binPhi(self,D1,D2):
+        """
+        Integrate function between set limits
+        """            
+        x1 = 10**(D1 - self.sp['D*'])
+        x2 = 10**(D2 - self.sp['D*'])
+
+        gamma = scipy.integrate.quad(self._integ, x1, x2, args=self.sp['alpha'])[0]
+        num = gamma*(10**self.sp['log10phi*'])
+        return num   
+        
 
     def N(self, volume, bin_edges):
         """
@@ -116,10 +128,12 @@ class Schechter():
             volume (float)
             bin_edges (array, float)
         """ 
-    
-        CulmN = np.array([self.CulmPhi(x) for x in bin_edges])*volume
+        N = np.array([self.binPhi(x1,x2) for x1,x2 \
+             in zip(bin_edges[:-1],bin_edges[1:])])*volume
+
+        return N
         
-        return -(CulmN[1:] - CulmN[0:-1])
+        # return -(CulmN[1:] - CulmN[0:-1])
 
 
 def _CDF(model, D_lowlim, normed = True):
