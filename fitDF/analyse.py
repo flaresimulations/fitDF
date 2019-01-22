@@ -46,7 +46,7 @@ class analyse():
             self.input_parameters = False
 
  
-    def LF(self, bins=np.arange(8,13,0.01),  output_filename = False, observations=False):
+    def LF(self, bins=np.arange(8,13,0.01),  output_filename = False, observations=False, xlabel='D'):
     
         # plt.style.use('simple')
         
@@ -117,8 +117,8 @@ class analyse():
 
         # ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
         
-    
-        ax.set_xlabel(r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$", size=12)
+        # Luminosity string: r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$
+        ax.set_xlabel(xlabel, size=12)
         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=12)
     
         return fig
@@ -304,14 +304,9 @@ class analyse():
 
                         axes[i,j].contour(xe[:-1]+bwi, ye[:-1]+bwj, H, levels=levels, linewidths=0.5, colors=ccolor)
                         
-                        
-                        
 
                 else:
-               
                     axes[i,j].set_axis_off() 
-
-
 
         return fig
 
@@ -322,149 +317,4 @@ class analyse():
 
         # fig.clf()
   
-  
-  
-  
-#     def triangle_wP(self, bins = 50, output_filename = 'triangle.pdf'):
-#     
-#         n = len(self.parameters)
-#     
-#         # ---- initialise figure
-# 
-#         plt.rcParams['mathtext.fontset'] = 'stixsans'
-#         plt.rcParams['text.usetex'] = False
-#         plt.rcParams['font.size'] = 7 # perhaps should depend on number of parameters to be plotted
-# 
-#         plt.rcParams['ytick.labelsize'] = 4 # perhaps should depend on number of parameters to be plotted
-#         plt.rcParams['xtick.labelsize'] = 4 # perhaps should depend on number of parameters to be plotted
-#     
-#         plt.rcParams['ytick.direction'] = 'in'    # direction: in, out, or inout
-#         plt.rcParams['xtick.direction'] = 'in'    # direction: in, out, or inout
-#     
-#         plt.rcParams['ytick.minor.visible'] = True
-#         plt.rcParams['xtick.minor.visible'] = True
-#     
-# 
-#         fig, axes = plt.subplots(n,n, figsize = (3,3))
-# 
-#         left  = 0.125  # the left side of the subplots of the figure
-#         right = 0.9    # the right side of the subplots of the figure
-#         bottom = 0.1   # the bottom of the subplots of the figure
-#         top = 0.9      # the top of the subplots of the figure
-#         wspace = 0.02   # the amount of width reserved for blank space between subplots
-#         hspace = 0.02   # the amount of height reserved for white space between subplots
-#     
-#         fig.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
-# 
-# 
-# 
-#         # ---- loop over parameters
-# 
-#         for i in np.arange(n):
-#             for j in np.arange(n):
-#     
-#                 axes[i,j].locator_params(axis = 'x', nbins=3)
-#                 axes[i,j].locator_params(axis = 'y', nbins=3)
-#       
-#                 pi = self.parameters[i]
-#                 pj = self.parameters[j]
-#                     
-#                     
-#                 
-# 
-#                 if i != n-1: axes[i,j].set_xticklabels([])
-#     
-# #                 if i == n-1: 
-# #                     axes[i,j].set_ylabel(r'${\rm'+parameter_labels[pi]+'}$')
-# #     
-# #                 if j == 0: 
-# #                 
-# #                     print i, pi
-# #                 
-# #                     axes[i,j].set_xlabel(r'${\rm'+parameter_labels[pj]+'}$')
-# #                     # axes[i,j].get_yaxis().set_label_coords(-0.1*n,0.5)
-#   
-#   
-#                 if j==0 and j<n-1:
-#                 
-#                     axes[i,j].set_ylabel(r'${\rm'+parameter_labels[pi]+'}$')
-#                     
-#                 if i==0 and j==n-1:
-#                 
-#                     axes[i,j].set_xlabel(r'${\rm'+parameter_labels[pj]+'}$')
-# 
-# 
-#                 if j < i:
-#                     
-#     
-#                     IQR = np.percentile(self.samples[pi], 75) - np.percentile(self.samples[pi], 25)
-#                     median = np.percentile(self.samples[pi], 50)
-#                     rangei = [median-3*IQR, median+3*IQR]
-#     
-#                     IQR = np.percentile(self.samples[pj], 75) - np.percentile(self.samples[pj], 25)
-#                     median = np.percentile(self.samples[pj], 50)
-#                     rangej = [median-3*IQR, median+3*IQR]
-#                     
-#     
-#                     H, xe, ye = np.histogram2d(self.samples[pj], self.samples[pi], bins = bins, range = [rangej, rangei]) 
-#                         
-#                     X, Y = np.meshgrid(xe, ye)
-#   
-#                     xlims = [xe[0], xe[-1]]
-#                     ylims = [ye[0], ye[-1]]
-#     
-#                     axes[i,j].set_xlim(xlims)
-#                     axes[i,j].set_ylim(ylims)
-#     
-#                     axes[i,j].pcolormesh(X, Y, H.T, cmap = 'plasma',linewidth=0,rasterized=True) #
-# 
-#                     if j != 0: axes[i,j].set_yticklabels([])
-# 
-# 
-#                     # --- add contours
-#                     
-#                     norm=H.sum() # Find the norm of the sum
-#                     # Set contour levels
-#                     # contour1=0.99 
-#                     contour2=0.95
-#                     contour3=0.68
-# 
-#                     # Set target levels as percentage of norm
-#                     # target1 = norm*contour1
-#                     target2 = norm*contour2
-#                     target3 = norm*contour3
-# 
-#                     # Take histogram bin membership as proportional to Likelihood
-#                     # This is true when data comes from a Markovian process
-#                     def objective(limit, target):
-#                         w = np.where(H>limit)
-#                         count = H[w]
-#                         return count.sum() - target
-# 
-#                     # Find levels by summing histogram to objective
-#                     # level1= scipy.optimize.bisect(objective, H.min(), H.max(), args=(target1,))
-#                     level2= scipy.optimize.bisect(objective, H.min(), H.max(), args=(target2,))
-#                     level3= scipy.optimize.bisect(objective, H.min(), H.max(), args=(target3,))
-# 
-#                     # For nice contour shading with seaborn, define top level
-#                     level4=H.max()
-#                     levels=[level2,level3]
-# 
-#                     bwi = (xe[1]-xe[0])/2.
-#                     bwj = (ye[1]-ye[0])/2.
-# 
-#                     axes[i,j].contour(xe[:-1]+bwi, ye[:-1]+bwj, H, levels=levels, linewidths=0.5, colors='1.0')
-# 
-#                 else:
-#                
-#                     axes[i,j].set_axis_off() 
-# 
-# 
-# 
-#         fig.savefig(output_filename, dpi = 300)
-# 
-#         fig.clf()
-    
-  
-  
-  
+ 
