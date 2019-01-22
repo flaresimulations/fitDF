@@ -8,15 +8,6 @@ import scipy
 from . import models
 
 
-# sys.path.insert(0, os.path.abspath('..'))
-
-parameter_labels = {}
-
-parameter_labels['log10L*'] = r'\log_{10}(L_{*})'
-parameter_labels['log10phi*'] = r'\log_{10}(\phi_{*}/Mpc^{-3})'
-parameter_labels['alpha'] = r'\alpha'
-
-
 class analyse():
 
     def __init__(self, ID = 'test', sample_save_ID = 'samples'):
@@ -52,8 +43,6 @@ class analyse():
         
             self.input_parameters = False
 
-        print(self.input_parameters)
-    
  
     def LF(self, output_filename = False):
     
@@ -70,7 +59,7 @@ class analyse():
 
         if self.input_parameters:
 
-            ax.axvline( self.input_parameters['log10L*'], c='k', alpha = 0.1)
+            ax.axvline( self.input_parameters['D*'], c='k', alpha = 0.1)
             ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
             
             inputLF = models.Schechter(self.input_parameters)
@@ -81,6 +70,7 @@ class analyse():
         # --- plot median-fit
     
         medianLF = models.Schechter(self.median_fit)
+
         ax.plot(log10L, medianLF.log10phi(log10L), c='b', lw=1, alpha = 0.5)
     
     
@@ -133,10 +123,14 @@ class analyse():
 #         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3})$")
         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$")
     
-        if output_filename: 
-            fig.savefig(output_filename, dpi = 300)
-        else:
-            fig.savefig(self.ID+'/LF.pdf', dpi = 300)
+        return fig
+
+        # plt.show()
+
+        # if output_filename: 
+        #     fig.savefig(output_filename, dpi = 300)
+        # else:
+        #     fig.savefig(self.ID+'/LF.pdf', dpi = 300)
         
     
     
@@ -321,12 +315,14 @@ class analyse():
 
 
 
-        if output_filename: 
-            fig.savefig(output_filename, dpi = 300)
-        else:
-            fig.savefig(self.ID+'/triangle.pdf', dpi = 300)
+        return fig
 
-        fig.clf()
+        # if output_filename: 
+        #     fig.savefig(output_filename, dpi = 300)
+        # else:
+        #     fig.savefig(self.ID+'/triangle.pdf', dpi = 300)
+
+        # fig.clf()
   
   
   

@@ -21,40 +21,40 @@ observations = [] # fit LF input list
 binw = 0.1
 
 for fake_obs in fake_observations:
-
-    print(fake_obs)
-
     bin_edges = np.arange(fake_obs['log10L_limit'], fake_obs['log10L_limit']+1.5, binw)
-
     N_sample = models.bin(fake_obs['sample'], fake_obs['volume'], bin_edges)
-
     observations.append({'bin_edges': bin_edges, 'N': N_sample, 'volume': fake_obs['volume']})
 
 
 print(observations)
 
-# -------------------- fit sampled LF and plot median fit
-import scipy
-priors = {}
-priors['phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
-priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
-priors['D*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
 
 model = models.Schechter()
 
+# ----- Define Priors manually...
+import scipy
+priors = {}
+priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
+priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
+priors['D*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
+
+# ---- ...or use utility function in fitDF
+priors = models.LF_priors()
+
+# -------------------- fit sampled LF and plot median fit
+
 fitter = fitDF.fitter(observations, model=model, priors=priors, output_directory = ID)
-fitter.fit(nsamples = 50, burn = 10)
+fitter.fit(nsamples = 100, burn = 10)
 # fitter.fit(nsamples = 2000, burn = 500, sample_save_ID = 'a_different_ID') # to save the samples as something other than samples.p
 
 
 # -------------------- make simple analysis plots
 
+a = analyse.analyse(ID = ID)
+fig = a.triangle(hist2d = True, ccolor='0.5')
+plt.show()
 
-# ranges controls the range shown on the triangle plot. If set to False it calculates a range based on the sample data. 
+fig = a.LF()
+plt.show()
 
-# ranges = {'log10phi*': [-6.0, 2.0], 'alpha': [-4.0, 0.0], 'log10L*': [27., 33.]}
-# ranges = False
-# 
-# a = analyse.analyse(ID = ID)
-# a.triangle(hist2d = True, ccolor='0.5', ranges = ranges)
-# a.LF()
+

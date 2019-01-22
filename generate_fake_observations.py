@@ -1,14 +1,10 @@
-
 import os
-
-import fitLF.models as models
-import fitLF.analyse as analyse
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-import mpmath
+import fitDF.models as models
+import fitDF.analyse as analyse
 
 
 # plt.style.use('simple')
@@ -24,17 +20,10 @@ np.random.seed(5)
 
 # -------------------- define input LF
 
-parameters = {'log10L*': 28.5, 'log10phi*': -2., 'alpha': -2.5}
+parameters = {'D*': 28.5, 'log10phi*': -2., 'alpha': -2.5}
 LF = models.Schechter(parameters)
 
 pickle.dump(parameters, open(ID+'/input_parameters.p','wb'))
-
-
-
-
-
-log10L_limits = [28.0, 29.0]
-volumes = [(50.)**3, (500.)**3]
 
 log10L_limits = [28.0]
 volumes = [(50.)**3]
@@ -53,7 +42,8 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
 
     # -------------------- sample input LF and plot
 
-    sample = LF.sample(volume, log10L_limit) # --- sample the IMF from log10L_limit -> \infty 
+    sample = models.sample(LF, volume=volume, D_lowlim=log10L_limit) # --- sample the IMF from log10L_limit -> \infty 
+
     
     observations.append({'log10L_limit':log10L_limit, 'volume':volume, 'sample': sample})
 
@@ -101,14 +91,9 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
 
 pickle.dump(observations, open(ID+'/fake_observations.p', 'wb')) # --- save sampled LFs
 
-
-
-
-
-
 # --- plot input parameters
 
-ax.axvline(parameters['log10L*'], c='k', alpha = 0.1)
+ax.axvline(parameters['D*'], c='k', alpha = 0.1)
 ax.axhline(parameters['log10phi*'] + np.log10(volume), c='k', alpha = 0.1)
 
 
@@ -117,8 +102,8 @@ ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
 ax.set_xlabel(r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$")
 ax.set_ylabel(r"$\rm \log_{10}(\phi/{\rm Mpc^{-3}})$")
 
-
-fig.savefig(ID+'/inputLF.pdf', dpi = 300)
+plt.show()
+# fig.savefig(ID+'/inputLF.pdf', dpi = 300)
     
 
 

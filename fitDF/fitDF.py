@@ -8,39 +8,25 @@ from . import models
 import scipy.misc
 import math
 
-class fitter():
 
+class fitter():
 
     def __init__(self, observations, model, priors, output_directory = 'test'):
 
+        print('fitDFv0.9')
+
+        # TODO: input tests
         self.output_directory = output_directory
         self.observations = observations
-
-        # pickle.dump(observations, open(self.output_directory+'/observations.p', 'wb'))
-
-        print('fitDFv0.9')
-       
         self.model = model
- 
-        self.parameters = ['phi*','alpha','D*'] # ['log10phi*','alpha','log10D*']
-
-        # ----- define priors
-        
-        self.priors = priors # {}
-        
-        # This distribution is constant between loc and loc + scale.
-        
-        # self.priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
-        # self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
-        # self.priors['log10D*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
-
+        self.priors = priors
+        self.parameters = priors.keys()
 
 
     def lnprob(self, params):
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
     
-        # model_LF = models.Schechter(p)
         self.model.update_params(p)
 
         lp = np.sum([self.priors[parameter].logpdf(p[parameter]) for parameter in self.parameters])
@@ -66,7 +52,7 @@ class fitter():
         print('Fitting -------------------------')
     
         # --- define number of parameters   
-        self.ndim = 3
+        self.ndim = len(self.priors.keys()) # 3
           
         # --- Choose an initial set of positions for the walkers.
         p0 = [ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)]
