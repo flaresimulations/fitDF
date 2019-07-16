@@ -1,6 +1,6 @@
 # fitDF (v0.1)
 
-Fit a binned luminosity function using [emcee](http://dfm.io/emcee/current/).
+Fit a binned distribution function using [emcee](http://dfm.io/emcee/current/).
 
 Developers:
 - Stephen Wilkins (University of Sussex)
