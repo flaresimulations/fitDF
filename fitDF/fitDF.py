@@ -8,49 +8,37 @@ from . import models
 import scipy.misc
 import math
 
+
 class fitter():
 
+    def __init__(self, observations, model, priors, output_directory = 'test'):
 
-    def __init__(self, observations, ID = 'test'):
+        print('fitDFv0.9')
 
-
-        self.ID = ID
+        # TODO: input tests
+        self.output_directory = output_directory
         self.observations = observations
-
-        pickle.dump(observations, open(self.ID+'/observations.p', 'wb'))
-
-        print('fitLFv0.8')
-                 
-        self.parameters = ['log10phi*','alpha','log10L*']
-
-        # ----- define priors
-        
-        self.priors = {}
-        
-        # This distribution is constant between loc and loc + scale.
-        
-        self.priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0) 
-        self.priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0) 
-        self.priors['log10L*'] = scipy.stats.uniform(loc = 26., scale = 5.0) 
-
+        self.model = model
+        self.priors = priors
+        self.parameters = priors.keys()
 
 
     def lnprob(self, params):
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
     
-        model_LF = models.Schechter(p)
+        self.model.update_params(p)
 
         lp = np.sum([self.priors[parameter].logpdf(p[parameter]) for parameter in self.parameters])
            
         if not np.isfinite(lp):
             return -np.inf
         
-        lnlike = 0
+        lnlike = 0.
         
         for obs in self.observations:
     
-            N_exp = model_LF.N(obs['volume'], obs['bin_edges'])
+            N_exp = self.model.N(obs['volume'], obs['bin_edges'])
 
             s = N_exp>0. # technically this should always be true but may break at very low N hence this 
 
@@ -64,7 +52,7 @@ class fitter():
         print('Fitting -------------------------')
     
         # --- define number of parameters   
-        self.ndim = 3
+        self.ndim = len(self.priors.keys()) # 3
           
         # --- Choose an initial set of positions for the walkers.
         p0 = [ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)]
@@ -88,7 +76,7 @@ class fitter():
         
             samples[p] = chains[:,ip]
 
-        pickle.dump(samples, open(self.ID+'/'+sample_save_ID+'.p', 'wb'))
+        pickle.dump(samples, open(self.output_directory+'/'+sample_save_ID+'.p', 'wb'))
         
         return samples
 

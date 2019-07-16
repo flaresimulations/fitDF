@@ -1,4 +1,4 @@
-## fitLF/__init__.py
+## fitDF/__init__.py
 
 from . import models
 
