@@ -1,4 +1,4 @@
-# fitLF (v0.8)
+# fitDF (v0.1)
 
 Fit a binned luminosity function using [emcee](http://dfm.io/emcee/current/).
 
