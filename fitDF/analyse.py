@@ -10,9 +10,10 @@ from . import models
 
 class analyse():
 
-    def __init__(self, ID = 'test', sample_save_ID = 'samples', observations = False):
+    def __init__(self, model, ID = 'test', sample_save_ID = 'samples', observations = False):
 
         self.ID = ID
+        self.model=model
 
         self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
 
@@ -50,7 +51,7 @@ class analyse():
     
         # plt.style.use('simple')
         
-        fig = plt.figure(figsize=(10,10))
+        fig = plt.figure(figsize=(9,9))
 
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
@@ -62,18 +63,21 @@ class analyse():
         if self.input_parameters:
 
             ax.axvline( self.input_parameters['D*'], c='k', alpha = 0.1)
-            ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
+            ax.axhline( np.log10(self.input_parameters['phi*']), c='k', alpha = 0.1)
             
-            inputLF = models.Schechter(self.input_parameters)
+            self.model.update_params(self.input_parameters)
             
-            ax.plot(bins, inputLF.log10phi(bins), c='k', lw=3, alpha = 0.2)
+            ax.plot(bins, self.model.log10phi(bins), c='k', lw=3, alpha = 0.2)
     
     
         # --- plot median-fit
     
-        medianLF = models.Schechter(self.median_fit)
+        self.model.update_params(self.median_fit)
+        
+        # testing
+        self.model.log10phi(bins)
 
-        ax.plot(bins, medianLF.log10phi(bins), c='b', lw=1, alpha = 0.5)
+        ax.plot(bins, self.model.log10phi(bins), c='b', lw=1, alpha = 0.5)
     
         mxphi = -100.
         mxlogL = 0.
@@ -87,22 +91,18 @@ class analyse():
     
     
                 logV = np.log10(obs['volume'])
-    
                 bin_edges = obs['bin_edges']
-            
                 bin_width = bin_edges[1]-bin_edges[0]
-            
                 bin_centres = bin_edges[0:-1] + 0.5*bin_width
             
-                c = np.random.rand(3,)
-            
+                c = 'C1'#np.random.rand(3,)
             
                 for bc, n in zip(bin_centres, obs['N']): 
         
                     if n>0:
                         ax.plot([bc]*2, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width) - logV, c=c, lw=1, alpha = 1.0) 
-                    else:
-                        ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.5, color=c)
+                    #else:
+                    #    ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.5, color=c)
     
                 phi = np.log10(obs['N']/bin_width) - logV
     
@@ -118,8 +118,8 @@ class analyse():
         # ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
         
         # Luminosity string: r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$
-        ax.set_xlabel(xlabel, size=12)
-        ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=12)
+        ax.set_xlabel(xlabel, size=15)
+        ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=15)
     
         return fig
 
