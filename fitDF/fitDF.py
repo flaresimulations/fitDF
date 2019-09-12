@@ -37,8 +37,13 @@ class fitter():
         lnlike = 0.
         
         for obs in self.observations:
-    
-            N_exp = self.model.N(obs['volume'], obs['bin_edges'])
+            
+            if 'phi' in obs.keys():
+                N_exp = obs['phi']
+            elif ('volume' in obs.keys()) & ('bin_edges' in obs.keys()):
+                N_exp = self.model.N(obs['volume'], obs['bin_edges'])
+            else:
+                raise ValueError('Must specify number density or counts in `observations`')
 
             s = N_exp>0. # technically this should always be true but may break at very low N hence this 
 
@@ -52,7 +57,7 @@ class fitter():
         print('Fitting -------------------------')
     
         # --- define number of parameters   
-        self.ndim = len(self.priors.keys()) # 3
+        self.ndim = len(self.priors.keys())
           
         # --- Choose an initial set of positions for the walkers.
         p0 = [ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)]
