@@ -63,8 +63,6 @@ def poisson_confidence_interval(n,p):
 
 
 
-
-
 class Schechter():
 
     def __init__(self, sp=None):
@@ -83,29 +81,13 @@ class Schechter():
 
         y = D - self.sp['D*']
 
-        return self.sp['log10phi*'] + np.log10(np.log(10.)) \
-                    + y*(self.sp['alpha']+1.) + -10**y/np.log(10.)
+        return self.sp['log10phi*'] + y*(self.sp['alpha']+1.) \
+               + -10**y/np.log(10.) + np.log10(np.log(10.))
 
-     
+
     @staticmethod
     def _integ(x,a):
         return x**a * np.exp(-x)
-
-
-    def CulmPhi(self,D):
-        """
-        Args:
-            D (array, float)
-        """
-    
-        y = D - self.sp['D*']
-        x = 10**y
-        alpha = self.sp['alpha']
-
-        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
-        num = gamma*(10**self.sp['log10phi*'])
-
-        return num   
 
 
     def binPhi(self,D1,D2):
@@ -116,8 +98,7 @@ class Schechter():
         x2 = 10**(D2 - self.sp['D*'])
 
         gamma = scipy.integrate.quad(self._integ, x1, x2, args=self.sp['alpha'])[0]
-        num = gamma*(10**self.sp['log10phi*'])
-        return num   
+        return gamma * 10**self.sp['log10phi*']
         
 
     def N(self, volume, bin_edges):
@@ -132,8 +113,65 @@ class Schechter():
              in zip(bin_edges[:-1],bin_edges[1:])])*volume
 
         return N
+
+
+
+class DoubleSchechter():
+
+    def __init__(self, sp=None):
+
+        if sp is None: 
+            self.sp = {'D*': None, 'log10phi*_1': None, 'alpha_1': None,
+                       'log10phi*_2': None, 'alpha_2': None}
+        else:
+            self.sp = sp
+
+
+    def update_params(self, sp):        
+        self.sp = sp
+
+ 
+    def log10phi(self, D):
+
+        y =10**(D - self.sp['D*'])
+
+        _temp = 10**self.sp['log10phi*_1'] * y**(self.sp['alpha_1']+1)
+        _temp += 10**self.sp['log10phi*_2'] * y**(self.sp['alpha_2']+1)
+
+        return -y / np.log(10) + np.log10(_temp) + np.log10(np.log(10))
+
+
+    @staticmethod
+    def _integ(x,a1,a2,phi1,phi2):
+        return (phi1 * x**a1 + phi2 * x**a2) * np.exp(-x)
+
+
+    def binPhi(self,D1,D2):
+        """
+        Integrate function between set limits
+        """            
+        x1 = 10**(D1 - self.sp['D*'])
+        x2 = 10**(D2 - self.sp['D*'])
+
+        args=(self.sp['alpha_1'],self.sp['alpha_2'],
+              10**self.sp['log10phi*_1'],10**self.sp['log10phi*_2'])
+
+        return scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
         
-        # return -(CulmN[1:] - CulmN[0:-1])
+
+    def N(self, volume, bin_edges):
+        """
+        return the exact number of galaxies expected in each bin
+
+        Args:
+            volume (float)
+            bin_edges (array, float)
+        """ 
+        N = np.array([self.binPhi(x1,x2) for x1,x2 \
+             in zip(bin_edges[:-1],bin_edges[1:])])*volume
+
+        return N
+
 
 
 def _CDF(model, D_lowlim, normed = True):
@@ -169,7 +207,7 @@ def LF_priors():
     """
     print("Initialising dummy priors")
     priors = {}
-    priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0)
+    priors['log10phi*'] = 10**scipy.stats.uniform(loc = -7.0, scale = 7.0)
     priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0)
     priors['D*'] = scipy.stats.uniform(loc = 26., scale = 5.0)
 
