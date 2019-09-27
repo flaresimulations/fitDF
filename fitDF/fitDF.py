@@ -38,12 +38,8 @@ class fitter():
         
         for obs in self.observations:
             
-            if 'phi' in obs.keys():
-                N_exp = obs['phi']
-            elif ('volume' in obs.keys()) & ('bin_edges' in obs.keys()):
-                N_exp = self.model.N(obs['volume'], obs['bin_edges'])
-            else:
-                raise ValueError('Must specify number density or counts in `observations`')
+            ## expected number of objects from model
+            N_exp = self.model.N(obs['volume'], obs['bin_edges'])
 
             s = N_exp>0. # technically this should always be true but may break at very low N hence this 
 
