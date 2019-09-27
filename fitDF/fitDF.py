@@ -6,7 +6,7 @@ import scipy.stats
 import pickle
 from . import models
 import scipy.misc
-import math
+#import math
 
 
 class fitter():

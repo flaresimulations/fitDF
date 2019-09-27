@@ -10,56 +10,39 @@ from . import models
 
 class analyse():
 
-    def __init__(self, model, ID = 'test', sample_save_ID = 'samples', observations = False):
+    def __init__(self, model, ID = 'test', sample_save_ID = 'samples', observations = False, verbose = True):
 
         self.ID = ID
         self.model=model
+        self.observations = observations
 
         self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
 
         self.parameters = self.samples.keys()
 
         # --- calculate median fit
-        
         self.median_fit = {}
 
         for ip, p in enumerate(self.parameters): 
         
             self.median_fit[p] = np.percentile(self.samples[p], 50)
 
-            print(p, np.percentile(self.samples[p], 16), np.percentile(self.samples[p], 50), np.percentile(self.samples[p], 84))
+            if verbose: print(p, np.percentile(self.samples[p], 16), np.percentile(self.samples[p], 50), np.percentile(self.samples[p], 84))
 
-
-        # --- load observations
-        # if observations:
-        #pickle.load(open(self.ID+'/observations.p', 'rb')) 
-        self.observations = observations
-
-
+        
         # --- try to load input parameters
-
         try:
-        
             self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'rb')) 
-        
         except:
-        
             self.input_parameters = False
 
  
-    def LF(self, bins=np.arange(8,13,0.01),  output_filename = False, observations=False, xlabel='D'):
+    def LF(self, bins=np.arange(8,13,0.01),  output_filename=False, observations=False, xlabel='D'):
     
-        # plt.style.use('simple')
-        
         fig = plt.figure(figsize=(9,9))
-
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
-        # bw = 0.01
-        # log10L = np.arange(27, 31.0, bw)
-
         # --- plot input LF if available
-
         if self.input_parameters:
 
             ax.axvline( self.input_parameters['D*'], c='k', alpha = 0.1)
@@ -71,11 +54,7 @@ class analyse():
     
     
         # --- plot median-fit
-    
         self.model.update_params(self.median_fit)
-        
-        # testing
-        self.model.log10phi(bins)
 
         ax.plot(bins, self.model.log10phi(bins), c='b', lw=1, alpha = 0.5)
     
@@ -115,22 +94,13 @@ class analyse():
             volumes = np.array([obs['volume'] for obs in self.observations])        
             ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
 
+        
         # ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
         
-        # Luminosity string: r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$
         ax.set_xlabel(xlabel, size=15)
         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=15)
     
         return fig
-
-        # plt.show()
-
-        # if output_filename: 
-        #     fig.savefig(output_filename, dpi = 300)
-        # else:
-        #     fig.savefig(self.ID+'/LF.pdf', dpi = 300)
-        
-    
     
 
     def triangle(self, bins = 50, contours = True, hist2d = True, output_filename = False, ccolor = '0.0', ranges = False):
@@ -309,12 +279,4 @@ class analyse():
                     axes[i,j].set_axis_off() 
 
         return fig
-
-        # if output_filename: 
-        #     fig.savefig(output_filename, dpi = 300)
-        # else:
-        #     fig.savefig(self.ID+'/triangle.pdf', dpi = 300)
-
-        # fig.clf()
-  
  
