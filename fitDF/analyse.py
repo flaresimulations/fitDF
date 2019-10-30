@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib import cm
 import pickle
+import json
 import scipy
 
 from . import models
@@ -32,21 +33,24 @@ class analyse():
         
         # --- try to load input parameters
         try:
-            self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'rb')) 
+            with open(self.ID+'/input_parameters.json', 'r') as f:
+                self.input_parameters = json.load(f)
+                print(self.input_parameters)
+            # self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'rb')) 
         except:
             self.input_parameters = False
 
  
-    def LF(self, bins=np.arange(8,13,0.01),  output_filename=False, observations=False, xlabel='D'):
+    def LF(self, bins=np.arange(8,13,0.01), output_filename=False, observations=False, xlabel='D'):
     
-        fig = plt.figure(figsize=(9,9))
+        fig = plt.figure(figsize=(7,7))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
         # --- plot input LF if available
         if self.input_parameters:
 
             ax.axvline( self.input_parameters['D*'], c='k', alpha = 0.1)
-            ax.axhline( np.log10(self.input_parameters['phi*']), c='k', alpha = 0.1)
+            ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
             
             self.model.update_params(self.input_parameters)
             
@@ -80,8 +84,9 @@ class analyse():
         
                     if n>0:
                         ax.plot([bc]*2, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width) - logV, c=c, lw=1, alpha = 1.0) 
-                    #else:
-                    #    ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.5, color=c)
+                    else:
+                        width = 0.001
+                        ax.arrow(bc, np.log10(models.poisson_confidence_interval(n, 0.68)/bin_width)[1] - logV, 0.0, -0.3, color=c, width=width, head_width=4*width)
     
                 phi = np.log10(obs['N']/bin_width) - logV
     
@@ -95,7 +100,7 @@ class analyse():
             ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
 
         
-        # ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
+        ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
         
         ax.set_xlabel(xlabel, size=15)
         ax.set_ylabel(r"$\rm \log_{10}(\phi/Mpc^{-3}\,dex^{-1})$", size=15)
@@ -123,7 +128,7 @@ class analyse():
         plt.rcParams['xtick.minor.visible'] = True
     
 
-        fig, axes = plt.subplots(n,n, figsize = (10,10))
+        fig, axes = plt.subplots(n,n, figsize = (7,7))
 
         left  = 0.125  # the left side of the subplots of the figure
         right = 0.9    # the right side of the subplots of the figure

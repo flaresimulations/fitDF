@@ -90,6 +90,22 @@ class Schechter():
         return x**a * np.exp(-x)
 
 
+    def CulmPhi(self,D):
+        """
+        Args:
+            D (array, float)
+        """
+    
+        y = D - self.sp['D*']
+        x = 10**y
+        alpha = self.sp['alpha']
+
+        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
+        num = gamma*(10**self.sp['log10phi*'])
+
+        return num   
+
+
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
@@ -207,7 +223,8 @@ def LF_priors():
     """
     print("Initialising dummy priors")
     priors = {}
-    priors['log10phi*'] = 10**scipy.stats.uniform(loc = -7.0, scale = 7.0)
+    priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0)
+    #priors['log10phi*'] = 10**scipy.stats.uniform(loc = -7.0, scale = 7.0)
     priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0)
     priors['D*'] = scipy.stats.uniform(loc = 26., scale = 5.0)
 
