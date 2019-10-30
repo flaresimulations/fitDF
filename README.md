@@ -3,7 +3,7 @@
 Fit a binned distribution function using [emcee](http://dfm.io/emcee/current/).
 
 ## Documentation
-Read the docs at [fitdf.readthedocs.org](fitdf.readthedocs.org).
+Read the docs at [fitdf.readthedocs.io](https://fitdf.readthedocs.io).
 
 ## Installation
 To install, clone the repository and run
