@@ -11,6 +11,7 @@ Welcome to fitDF's documentation!
    :caption: Contents:
 
    installation
+   example
 
 Indices and tables
 ==================
