@@ -3,7 +3,8 @@ Installation
 
 To install, clone the repository and run
 
-.. highlight::bash
+.. code-block:: bash
+
     python setup.py install
 
 in your desired environment.

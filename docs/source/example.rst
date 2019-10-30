@@ -3,7 +3,8 @@ Example usage
 
 In this tutorial we'll demonstrate using fitDF on a galaxy luminosity function. First, we can generate some fake observational data (counts per luminosity bin) by running
 
-.. highlight::bash
+.. code-block:: bash
+    
     python generate_fake_observations.py
 
 This produces two files, :code:`fake_observations.json` and :code:`input_parameters.json`, which contain the counts and the chosen input parameters, respectively.
@@ -11,16 +12,17 @@ This produces two files, :code:`fake_observations.json` and :code:`input_paramet
 Now we can run our fit:
 
 
-.. highlight::bash
+.. code-block:: bash
+
     python example_fit.py
 
 this performs MCMC to fit the observations using a single Schechter function model (identical to that used in the data generation). Once the sampling is complete, two plots are produced. :code:`triangle.png` shows a triangle (corner) plot of the posterior parameter distributions, with the original parameters shown as the horizontal lines on each marginal distribution.
 
-.. image::triangle.png
+.. image:: triangle.png
 
 :code:`LF.png` shows the fitted luminosity function. The original and fitted functions are both shown, as well as the original data.
 
-.. image::LF.png
+.. image:: LF.png
 
 
 
