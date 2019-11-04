@@ -25,6 +25,16 @@ def M(log10L):
     return -2.5*(log10L - np.log10(geo))-48.6
 
 
+def phi_to_N(phi, volume, bin_lims):
+    """
+    phi (Mpc^-3 dex^-1)
+
+    N -> no units
+    """
+    dex = bin_lims[1:] - bin_lims[:-1]
+    return phi * volume * dex
+
+
 def poisson_confidence_interval(n,p):
     
     #http://ms.mcmaster.ca/peter/s743/poissonalpha.html
