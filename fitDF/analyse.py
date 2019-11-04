@@ -42,7 +42,7 @@ class analyse():
 
  
     def LF(self, bins=np.arange(8,13,0.01), output_filename=False, observations=False, xlabel='D'):
-    
+
         fig = plt.figure(figsize=(7,7))
         ax = fig.add_axes([0.15, 0.15, 0.8, 0.75 ])
 
@@ -128,7 +128,10 @@ class analyse():
         plt.rcParams['xtick.minor.visible'] = True
     
 
-        fig, axes = plt.subplots(n,n, figsize = (7,7))
+        # dynamically change size of figure depending on number of parameters
+        figsize = (len(self.median_fit.keys()) * 2.5) + 2
+        
+        fig, axes = plt.subplots(n,n, figsize = (figsize,figsize))
 
         left  = 0.125  # the left side of the subplots of the figure
         right = 0.9    # the right side of the subplots of the figure
@@ -155,11 +158,11 @@ class analyse():
             
                 if i!=0 and j==0 and j<n-1:
                     #axes[i,j].set_ylabel(r'${\rm'+parameter_labels[pi]+'}$')
-                    axes[i,j].set_ylabel(r'${\rm%s}$'%ikey)
+                    axes[i,j].set_ylabel(r'${\rm%s}$'%ikey, size=figsize*1.3)
                     
                 if i==(n-1):
                     #axes[i,j].set_xlabel(r'${\rm'+parameter_labels[pj]+'}$')
-                    axes[i,j].set_xlabel(r'${\rm%s}$'%jkey)
+                    axes[i,j].set_xlabel(r'${\rm%s}$'%jkey, size=figsize*1.3)
 
 
                 if j == i:
