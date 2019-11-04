@@ -13,7 +13,7 @@ class fitter():
 
     def __init__(self, observations, model, priors, output_directory = 'test'):
 
-        print('fitDFv0.9')
+        print('fitDFv0.1')
 
         # TODO: input tests
         self.output_directory = output_directory
