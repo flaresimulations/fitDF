@@ -16,8 +16,8 @@ def log10L(M):
     Convert Absolute Magnitude to Log Luminosity (erg s^-1 cm^-2)
     """
     return -0.4*(M+48.6)+np.log10(geo)
-    
-    
+
+
 def M(log10L):
     """
     Convert Log Luminosity to Absolute Magnitude
@@ -25,50 +25,40 @@ def M(log10L):
     return -2.5*(log10L - np.log10(geo))-48.6
 
 
-def phi_to_N(phi, volume, bin_lims):
-    """
-    phi (Mpc^-3 dex^-1)
-
-    N -> no units
-    """
-    dex = bin_lims[1:] - bin_lims[:-1]
-    return phi * volume * dex
-
-
 def poisson_confidence_interval(n,p):
-    
+
     #http://ms.mcmaster.ca/peter/s743/poissonalpha.html
-        
+
     #e.g. p=0.68 for 1 sigma
-    
+
     #agrees with http://hyperphysics.phy-astr.gsu.edu/hbase/math/poifcn.html
-        
+
     # see comments on JavaStat page
-    
+
     #  scipy.stats.chi2.ppf((1.-p)/2.,2*n)/2. also known
-    
-    if n>0:   
-        interval=[scipy.stats.chi2.ppf((1.-p)/2.,2*n)/2.,scipy.stats.chi2.ppf(p+(1.-p)/2.,2*(n+1))/2.]       
-    
+
+    if n>0:
+        interval=[scipy.stats.chi2.ppf((1.-p)/2.,2*n)/2.,scipy.stats.chi2.ppf(p+(1.-p)/2.,2*(n+1))/2.]
+
     else:
-        
+
         #this bit works out the case for n=0
-        
+
         ul=(1.-p)/2.
-        
+
         prev=1.0
         for a in np.arange(0.,5.0,0.001):
-        
+
             cdf=scipy.stats.poisson.cdf(n,a)
-        
+
             if cdf<ul and prev>ul:
                 i=a
-        
+
             prev=cdf
-        
+
         interval=[0.,i]
-    
-    
+
+
     return np.array(interval)
 
 
@@ -77,16 +67,16 @@ class Schechter():
 
     def __init__(self, sp=None):
 
-        if sp is None: 
+        if sp is None:
             self.sp = {'D*': None, 'log10phi*': None, 'alpha': None}
         else:
             self.sp = sp
 
 
-    def update_params(self, sp):        
+    def update_params(self, sp):
         self.sp = sp
 
- 
+
     def log10phi(self, D):
 
         y = D - self.sp['D*']
@@ -105,7 +95,7 @@ class Schechter():
         Args:
             D (array, float)
         """
-    
+
         y = D - self.sp['D*']
         x = 10**y
         alpha = self.sp['alpha']
@@ -113,19 +103,19 @@ class Schechter():
         gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
         num = gamma*(10**self.sp['log10phi*'])
 
-        return num   
+        return num
 
 
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
-        """            
+        """
         x1 = 10**(D1 - self.sp['D*'])
         x2 = 10**(D2 - self.sp['D*'])
 
         gamma = scipy.integrate.quad(self._integ, x1, x2, args=self.sp['alpha'])[0]
         return gamma * 10**self.sp['log10phi*']
-        
+
 
     def N(self, volume, bin_edges):
         """
@@ -134,29 +124,96 @@ class Schechter():
         Args:
             volume (float)
             bin_edges (array, float)
-        """ 
+        """
         N = np.array([self.binPhi(x1,x2) for x1,x2 \
              in zip(bin_edges[:-1],bin_edges[1:])])*volume
 
         return N
 
 
+class Schechter_Mags():
+
+    def __init__(self, sp=None):
+
+        if sp is None:
+            self.sp = {'D*': None, 'log10phi*': None, 'alpha': None}
+        else:
+            self.sp = sp
+
+
+    def update_params(self, sp):
+        self.sp = sp
+
+
+    def log10phi(self, D):
+
+        y = 0.4*(D - self.sp['D*'])
+
+        return np.log10(0.4*np.log(10)) + self.sp['log10phi*'] - y*(self.sp['alpha']+1.) \
+        - (np.log10(np.e)) * (10**(-y))
+
+
+    @staticmethod
+    def _integ(x,a):
+        return x**(a) * np.exp(-x)
+
+
+    def CulmPhi(self,D):
+        """
+        Args:
+            D (array, float)
+        """
+
+        y = D - self.sp['D*']
+        x = 10**(-0.4*y)
+        alpha = self.sp['alpha']
+
+        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
+        num = 0.4 * np.log(10) * gamma * (10**self.sp['log10phi*'])
+
+        return num
+
+
+    def binPhi(self,D1,D2):
+        """
+        Integrate function between set limits
+        """
+        x1 = 10**(-0.4*(D1 - self.sp['D*']))
+        x2 = 10**(-0.4*(D2 - self.sp['D*']))
+
+        gamma = scipy.integrate.quad(self._integ, x1, x2, args=self.sp['alpha'])[0]
+        return 0.4 * np.log(10) * gamma * (10**self.sp['log10phi*'])
+
+
+    def N(self, volume, bin_edges):
+        """
+        return the exact number of galaxies expected in each bin
+
+        Args:
+            volume (float)
+            bin_edges (array, float)
+        """
+        N = np.array([self.binPhi(x2,x1) for x1,x2 \
+             in zip(bin_edges[:-1],bin_edges[1:])])*volume
+
+        return N
+
 
 class DoubleSchechter():
 
     def __init__(self, sp=None):
 
-        if sp is None: 
+        if sp is None:
             self.sp = {'D*': None, 'log10phi*_1': None, 'alpha_1': None,
                        'log10phi*_2': None, 'alpha_2': None}
         else:
             self.sp = sp
 
 
-    def update_params(self, sp):        
+    def update_params(self, sp):
         self.sp = sp
 
- 
+
     def log10phi(self, D):
 
         y =10**(D - self.sp['D*'])
@@ -169,13 +226,13 @@ class DoubleSchechter():
 
     @staticmethod
     def _integ(x,a1,a2,phi1,phi2):
-        return (phi1 * x**a1 + phi2 * x**a2) * np.exp(-x)
+        return (phi1 * x**(a1+1) + phi2 * x**(a2+1)) * np.exp(-x)
 
 
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
-        """            
+        """
         x1 = 10**(D1 - self.sp['D*'])
         x2 = 10**(D2 - self.sp['D*'])
 
@@ -183,7 +240,7 @@ class DoubleSchechter():
               10**self.sp['log10phi*_1'],10**self.sp['log10phi*_2'])
 
         return scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
-        
+
 
     def N(self, volume, bin_edges):
         """
@@ -192,8 +249,67 @@ class DoubleSchechter():
         Args:
             volume (float)
             bin_edges (array, float)
-        """ 
+        """
         N = np.array([self.binPhi(x1,x2) for x1,x2 \
+             in zip(bin_edges[:-1],bin_edges[1:])])*volume
+
+        return N
+
+
+class DoubleSchechter_Mags():
+
+    def __init__(self, sp=None):
+
+        if sp is None:
+            self.sp = {'D*': None, 'log10phi*_1': None, 'alpha_1': None,
+                       'log10phi*_2': None, 'alpha_2': None}
+        else:
+            self.sp = sp
+
+
+    def update_params(self, sp):
+        self.sp = sp
+
+
+    def log10phi(self, D):
+
+        y = 10**(-0.4*(D - self.sp['D*']))
+
+        _temp = 10**self.sp['log10phi*_1'] * y**(self.sp['alpha_1']+1)
+        _temp += 10**self.sp['log10phi*_2'] * y**(self.sp['alpha_2']+1)
+
+        return -y + np.log10(_temp) + np.log10(0.4*np.log(10.))
+
+
+    @staticmethod
+    def _integ(x,a1,a2,phi1,phi2):
+        return (phi1 * x**(a1+1) + phi2 * x**(a2+1)) * np.exp(-x)
+
+
+    def binPhi(self,D1,D2):
+        """
+        Integrate function between set limits
+        """
+        x1 = 10**(-0.4*(D1 - self.sp['D*']))
+        x2 = 10**(-0.4*(D2 - self.sp['D*']))
+
+        args=(self.sp['alpha_1'],self.sp['alpha_2'],
+              10**self.sp['log10phi*_1'],10**self.sp['log10phi*_2'])
+
+        gamma = scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
+
+        return 0.4 * np.log(10) * gamma
+
+
+    def N(self, volume, bin_edges):
+        """
+        return the exact number of galaxies expected in each bin
+
+        Args:
+            volume (float)
+            bin_edges (array, float)
+        """
+        N = np.array([self.binPhi(x2,x1) for x1,x2 \
              in zip(bin_edges[:-1],bin_edges[1:])])*volume
 
         return N
@@ -208,22 +324,22 @@ def _CDF(model, D_lowlim, normed = True):
 
     if normed: CDF /= CDF[-1]
 
-    return log10Ls, CDF 
+    return log10Ls, CDF
 
 
 def sample(model, volume, D_lowlim):
-        
+
     D, cdf = _CDF(model, D_lowlim, normed=False)
 
     n2 = model.CulmPhi(D_lowlim)*volume
 
     # --- Not strictly correct but I can't think of a better approach
-    n = np.random.poisson(volume * cdf[-1]) 
+    n = np.random.poisson(volume * cdf[-1])
 
     ncdf = cdf/cdf[-1]
-    
+
     D_sample = np.interp(np.random.random(n), ncdf, D)
-    
+
     return D_sample
 
 
@@ -240,14 +356,13 @@ def LF_priors():
 
     return priors
 
- 
+
 
 
 def bin(log10L_sample, volume, bins):
-    
+
         # --- bins can either be the number of bins or the bin_edges
 
         N_sample, bin_edges = np.histogram(log10L_sample, bins = bins, normed=False)
-         
+
         return N_sample
-    
