@@ -26,59 +26,59 @@ class fitter():
     def lnprob(self, params):
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
-    
+
         self.model.update_params(p)
 
         lp = np.sum([self.priors[parameter].logpdf(p[parameter]) for parameter in self.parameters])
-           
+
         if not np.isfinite(lp):
             return -np.inf
-        
+
         lnlike = 0.
-        
+
         for obs in self.observations:
-            
+
             ## expected number of objects from model
             N_exp = self.model.N(obs['volume'], obs['bin_edges'])
 
-            s = N_exp>0. # technically this should always be true but may break at very low N hence this 
+            s = np.logical_and(N_exp>0., obs['N']) # technically this should always be true but may break at very low N hence this
 
-            lnlike += np.sum(obs['N'][s] * np.log(N_exp[s]) - N_exp[s]) 
-    
+            lnlike += np.nansum(obs['N'][s] * np.log(N_exp[s]) - N_exp[s] - (obs['N'][s]+0.5)*np.log(obs['N'][s])) - np.nansum((np.log(N_exp[s])-np.log(obs['N'][s]))**2)
+
+
+
         return lp + lnlike
-    
-    
+
+
     def fit(self, nwalkers = 50, nsamples = 1000, burn = 200, sample_save_ID = 'samples'):
-    
+
         print('Fitting -------------------------')
-    
-        # --- define number of parameters   
+
+        # --- define number of parameters
         self.ndim = len(self.priors.keys())
-          
+
         # --- Choose an initial set of positions for the walkers.
         p0 = [ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)]
 
         # --- Initialize the sampler with the chosen specs. The "a" parameter controls the step size, the default is a=2.
 
         self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, self.lnprob, args=())
-        
+
         pos, prob, state = self.sampler.run_mcmc(p0, burn)
         self.sampler.reset()
-        
+
         self.sampler.run_mcmc(pos, nsamples)
 
         # --- save samples
-    
+
         samples = {}
-    
+
         chains = self.sampler.chain[:, :, ].reshape((-1, self.ndim))
-    
-        for ip, p in enumerate(self.parameters): 
-        
+
+        for ip, p in enumerate(self.parameters):
+
             samples[p] = chains[:,ip]
 
         pickle.dump(samples, open(self.output_directory+'/'+sample_save_ID+'.p', 'wb'))
-        
+
         return samples
-
-
