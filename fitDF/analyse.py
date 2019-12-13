@@ -11,13 +11,16 @@ from . import models
 
 class analyse():
 
-    def __init__(self, model, ID = 'test', sample_save_ID = 'samples', observations = False, verbose = True):
+    def __init__(self, model, ID = 'test', sample_save_ID = 'samples', samples=False, observations = False, verbose = True):
 
         self.ID = ID
         self.model=model
         self.observations = observations
 
-        self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
+        if samples is False:
+            self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
+        else:
+            self.samples = samples
 
         self.parameters = self.samples.keys()
 
@@ -50,7 +53,8 @@ class analyse():
         if self.input_parameters:
 
             ax.axvline( self.input_parameters['D*'], c='k', alpha = 0.1)
-            ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
+            if 'log10phi*' in self.input_parameters.keys():
+                ax.axhline( self.input_parameters['log10phi*'], c='k', alpha = 0.1)
             
             self.model.update_params(self.input_parameters)
             
@@ -91,7 +95,7 @@ class analyse():
                 phi = np.log10(obs['N']/bin_width) - logV
     
                 ax.scatter(bin_centres, phi, c=c, s=5)
-        
+
                 if np.max(phi)>mxphi: mxphi = np.max(phi)
                 if bin_centres[-1]>mxlogL: mxlogL = bin_centres[-1]
                 if bin_centres[0]<mnlogL: mnlogL = bin_centres[0]
@@ -99,7 +103,6 @@ class analyse():
             volumes = np.array([obs['volume'] for obs in self.observations])        
             ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
 
-        
         ax.set_xlim([mnlogL-0.25, mxlogL+0.25])        
         
         ax.set_xlabel(xlabel, size=15)
