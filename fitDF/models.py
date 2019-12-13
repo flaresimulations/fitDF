@@ -25,6 +25,17 @@ def M(log10L):
     return -2.5*(log10L - np.log10(geo))-48.6
 
 
+
+def phi_to_N(phi, volume, bin_lims):
+    """
+    phi (Mpc^-3 dex^-1)
+    N -> no units
+    """
+    dex = bin_lims[1:] - bin_lims[:-1]
+    return phi * volume * dex
+
+
+
 def poisson_confidence_interval(n,p):
 
     #http://ms.mcmaster.ca/peter/s743/poissonalpha.html
@@ -78,32 +89,20 @@ class Schechter():
 
 
     def log10phi(self, D):
+        # y = D - self.sp['D*']
+
+        # return self.sp['log10phi*'] + y*(self.sp['alpha']+1.) \
+        #        + (-10**y)/np.log(10.) + np.log10(np.log(10.))
 
         y = D - self.sp['D*']
+        phi = np.log(10) * 10**self.sp['log10phi*'] * np.exp(-10**y) * 10**(y*(self.sp['alpha'] + 1))
 
-        return self.sp['log10phi*'] + y*(self.sp['alpha']+1.) \
-               + -10**y/np.log(10.) + np.log10(np.log(10.))
+        return np.log10(phi)
 
-
+    
     @staticmethod
     def _integ(x,a):
         return x**a * np.exp(-x)
-
-
-    def CulmPhi(self,D):
-        """
-        Args:
-            D (array, float)
-        """
-
-        y = D - self.sp['D*']
-        x = 10**y
-        alpha = self.sp['alpha']
-
-        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
-        num = gamma*(10**self.sp['log10phi*'])
-
-        return num
 
 
     def binPhi(self,D1,D2):
@@ -112,9 +111,11 @@ class Schechter():
         """
         x1 = 10**(D1 - self.sp['D*'])
         x2 = 10**(D2 - self.sp['D*'])
-
-        gamma = scipy.integrate.quad(self._integ, x1, x2, args=self.sp['alpha'])[0]
-        return gamma * 10**self.sp['log10phi*']
+        alpha = self.sp['alpha'] # + 1
+        
+        gamma = scipy.integrate.quad(self._integ, x1, x2, args=alpha)[0]
+        
+        return gamma * 10**self.sp['log10phi*'] # * np.log(10)
 
 
     def N(self, volume, bin_edges):
@@ -158,20 +159,20 @@ class Schechter_Mags():
         return x**(a) * np.exp(-x)
 
 
-    def CulmPhi(self,D):
-        """
-        Args:
-            D (array, float)
-        """
-
-        y = D - self.sp['D*']
-        x = 10**(-0.4*y)
-        alpha = self.sp['alpha']
-
-        gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
-        num = 0.4 * np.log(10) * gamma * (10**self.sp['log10phi*'])
-
-        return num
+#     def CulmPhi(self,D):
+#         """
+#         Args:
+#             D (array, float)
+#         """
+# 
+#         y = D - self.sp['D*']
+#         x = 10**(-0.4*y)
+#         alpha = self.sp['alpha']
+# 
+#         gamma = scipy.integrate.quad(self._integ, x, np.inf, args=alpha)[0]
+#         num = 0.4 * np.log(10) * gamma * (10**self.sp['log10phi*'])
+# 
+#         return num
 
 
     def binPhi(self,D1,D2):
@@ -200,6 +201,11 @@ class Schechter_Mags():
 
 
 class DoubleSchechter():
+    """
+    Five parameter model, with a single value for the break (D*)
+
+    see e.g. Baldry+11 (arXiv:1111.5707)
+    """
 
     def __init__(self, sp=None):
 
@@ -226,7 +232,7 @@ class DoubleSchechter():
 
     @staticmethod
     def _integ(x,a1,a2,phi1,phi2):
-        return (phi1 * x**(a1+1) + phi2 * x**(a2+1)) * np.exp(-x)
+        return (phi1 * x**a1 + phi2 * x**a2) * np.exp(-x)
 
 
     def binPhi(self,D1,D2):
@@ -236,10 +242,14 @@ class DoubleSchechter():
         x1 = 10**(D1 - self.sp['D*'])
         x2 = 10**(D2 - self.sp['D*'])
 
-        args=(self.sp['alpha_1'],self.sp['alpha_2'],
-              10**self.sp['log10phi*_1'],10**self.sp['log10phi*_2'])
+        args=(self.sp['alpha_1'],#+1
+              self.sp['alpha_2'],#+1
+              10**self.sp['log10phi*_1'],
+              10**self.sp['log10phi*_2'])
 
-        return scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
+        N = scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
+
+        return N# * np.log(10)
 
 
     def N(self, volume, bin_edges):
@@ -320,7 +330,7 @@ def _CDF(model, D_lowlim, normed = True):
 
     log10Ls = np.arange(model.sp['D*']+5.,D_lowlim-0.01,-0.01)
 
-    CDF = np.array([model.CulmPhi(log10L) for log10L in log10Ls])
+    CDF = np.array([model.binPhi(log10L,np.inf) for log10L in log10Ls])
 
     if normed: CDF /= CDF[-1]
 
@@ -331,7 +341,7 @@ def sample(model, volume, D_lowlim):
 
     D, cdf = _CDF(model, D_lowlim, normed=False)
 
-    n2 = model.CulmPhi(D_lowlim)*volume
+    n2 = model.binPhi(D_lowlim, np.inf)*volume
 
     # --- Not strictly correct but I can't think of a better approach
     n = np.random.poisson(volume * cdf[-1])
@@ -350,7 +360,6 @@ def LF_priors():
     print("Initialising dummy priors")
     priors = {}
     priors['log10phi*'] = scipy.stats.uniform(loc = -7.0, scale = 7.0)
-    #priors['log10phi*'] = 10**scipy.stats.uniform(loc = -7.0, scale = 7.0)
     priors['alpha'] = scipy.stats.uniform(loc = -3.0, scale = 3.0)
     priors['D*'] = scipy.stats.uniform(loc = 26., scale = 5.0)
 
@@ -360,9 +369,9 @@ def LF_priors():
 
 
 def bin(log10L_sample, volume, bins):
+    # --- bins can either be the number of bins or the bin_edges
 
-        # --- bins can either be the number of bins or the bin_edges
+    N_sample, bin_edges = np.histogram(log10L_sample, bins = bins, normed=False)
 
-        N_sample, bin_edges = np.histogram(log10L_sample, bins = bins, normed=False)
+    return N_sample
 
-        return N_sample
