@@ -15,14 +15,16 @@ if not os.path.exists(ID): os.mkdir(ID)
 
 np.random.seed(2)
 
-# -------------------- define input LF
-parameters = {'D*': 28.5, 'log10phi*': -2., 'alpha': -2.5}
-LF = models.Schechter(parameters)
+# -------------------- define input function
+parameters = {'D*': 28.5, 'log10phi*_1': -1, 'alpha_1': 0.5,
+                          'log10phi*_2': -2.5, 'alpha_2': -2.5}
+LF = models.DoubleSchechter(parameters)
+
 
 with open('%s/input_parameters.json'%ID,'w') as f:
     json.dump(parameters,f)
 
-log10L_limits = [28.0]
+log10L_limits = [27.0]
 volumes = [(50.)**3]
 
 observations = {}
@@ -43,15 +45,13 @@ for log10L_limit, volume in zip(log10L_limits,volumes):
     observations[log10L_limit] = {'log10L_limit':log10L_limit, 'volume':volume, 'sample': sample}
 
     # -------------------- bin the sampled IMF and compares to the truth
-    binw = 0.1
-    bin_edges = np.arange(log10L_limit, log10L_limit+1.5, binw)
+    binw = 0.05
+    bin_edges = np.arange(log10L_limit, log10L_limit+3, binw)
     bin_centres = bin_edges[:-1] + 0.5*(bin_edges[1:]-bin_edges[:-1]) 
 
     N = LF.N(volume, bin_edges) # --- the exact number of galaxies expected in each bin
 
     N_sample = models.bin(sample, volume, bin_edges) # --- bin the sampled LF with the same bins 
-
-    for bc,n,n_sample in zip(bin_centres, N, N_sample): print(bc, n, n_sample)
 
     # -------------------- plot sampled and true LF
     # --- plot "true" LF
@@ -84,7 +84,8 @@ with open('%s/fake_observations.json'%ID,'w') as f:
 
 # --- plot input parameters
 ax.axvline(parameters['D*'], c='k', alpha = 0.1)
-ax.axhline(parameters['log10phi*'] + np.log10(volume), c='k', alpha = 0.1)
+ax.axhline(parameters['log10phi*_1'], c='k', alpha = 0.1)
+ax.axhline(parameters['log10phi*_2'], c='k', alpha = 0.1)
 
 ax.set_ylim([np.log10(1./np.max(np.array(volumes)))-0.5, mxphi+0.5])
 
@@ -92,7 +93,5 @@ ax.set_xlabel(r"$\rm \log_{10}(L_{\nu}/erg\, s^{-1}\, Hz^{-1})$")
 ax.set_ylabel(r"$\rm \log_{10}(\phi/{\rm Mpc^{-3}})$")
 
 plt.show()
-# fig.savefig(ID+'/inputLF.pdf', dpi = 300)
-    
-
+fig.savefig(ID+'/inputLF.pdf', dpi = 300)
 
