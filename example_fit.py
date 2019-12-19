@@ -30,7 +30,7 @@ priors = {}
 
 model = models.DoubleSchechter()
 
-priors['log10phi*_1'] = scipy.stats.uniform(loc = -5.0, scale = 4.0) 
+priors['log10phi*_1'] = scipy.stats.uniform(loc = -5.0, scale = 6.0) 
 priors['alpha_1'] = scipy.stats.uniform(loc = -1.0, scale = 3.0) 
 priors['log10phi*_2'] = scipy.stats.uniform(loc = -5.0, scale = 4.0) 
 priors['alpha_2'] = scipy.stats.uniform(loc = -4.0, scale =3.0) 
