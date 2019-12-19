@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib import cm
-import pickle
 import json
 import scipy
 
@@ -18,7 +17,10 @@ class analyse():
         self.observations = observations
 
         if samples is False:
-            self.samples = pickle.load(open(self.ID+'/'+sample_save_ID+'.p', 'rb')) 
+            with open("%s/%s.json"%(self.ID,sample_save_ID),'r') as f:
+                _samples = json.load(f)
+            
+            self.samples = {key: np.array(arr) for key,arr in _samples.items()}
         else:
             self.samples = samples
 
@@ -39,7 +41,6 @@ class analyse():
             with open(self.ID+'/input_parameters.json', 'r') as f:
                 self.input_parameters = json.load(f)
                 print(self.input_parameters)
-            # self.input_parameters = pickle.load(open(self.ID+'/input_parameters.p', 'rb')) 
         except:
             self.input_parameters = False
 

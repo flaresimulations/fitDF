@@ -3,10 +3,9 @@
 import numpy as np
 import emcee
 import scipy.stats
-import pickle
+import json
 from . import models
 import scipy.misc
-#import math
 
 
 class fitter():
@@ -79,6 +78,16 @@ class fitter():
 
             samples[p] = chains[:,ip]
 
-        pickle.dump(samples, open(self.output_directory+'/'+sample_save_ID+'.p', 'wb'))
+        self.save_samples(samples,sample_save_ID)
 
         return samples
+
+
+    def save_samples(self, samples, save_ID):
+        
+        samples = {key: arr.tolist() for key,arr in samples.items()}
+
+        with open('%s/%s.json'%(self.output_directory,save_ID),"w") as f:
+            json.dump(samples,f)
+        
+
