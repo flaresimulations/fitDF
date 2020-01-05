@@ -89,10 +89,6 @@ class Schechter():
 
 
     def log10phi(self, D):
-        # y = D - self.sp['D*']
-
-        # return self.sp['log10phi*'] + y*(self.sp['alpha']+1.) \
-        #        + (-10**y)/np.log(10.) + np.log10(np.log(10.))
 
         y = D - self.sp['D*']
         phi = np.log(10) * 10**self.sp['log10phi*'] * np.exp(-10**y) * 10**(y*(self.sp['alpha'] + 1))
@@ -101,20 +97,26 @@ class Schechter():
 
 
     @staticmethod
-    def _integ(x,a):
-        return x**a * np.exp(-x)
+    def _integ(x,a,D):
+        return 10**((a+1)*(x-D)) * np.exp(-10**(x-D))
 
 
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
         """
+<<<<<<< HEAD
         x1 = 10**(D1 - self.sp['D*'])
         x2 = 10**(D2 - self.sp['D*'])
         alpha = self.sp['alpha'] # + 1
 
         gamma = scipy.integrate.quad(self._integ, x1, x2, args=alpha)[0]
 
+=======
+        args = (self.sp['alpha'],self.sp['D*'])
+        gamma = scipy.integrate.quad(self._integ, D1, D2, args=args)[0]
+        
+>>>>>>> 57ebe4d5f39a10d107c3025225d641fafbc8902a
         return gamma * 10**self.sp['log10phi*'] * np.log(10)
 
 
@@ -159,7 +161,10 @@ class Schechter_Mags():
         return x**(a) * np.exp(-x)
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 57ebe4d5f39a10d107c3025225d641fafbc8902a
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
@@ -216,25 +221,24 @@ class DoubleSchechter():
 
 
     @staticmethod
-    def _integ(x,a1,a2,phi1,phi2):
-        return (phi1 * x**a1 + phi2 * x**a2) * np.exp(-x)
+    def _integ(x,a1,a2,phi1,phi2,D):
+        y=x-D
+        return (phi1 * 10**(a1*y) + phi2 * 10**(a2*y)) * np.exp(-10**y)
 
 
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
         """
-        x1 = 10**(D1 - self.sp['D*'])
-        x2 = 10**(D2 - self.sp['D*'])
-
-        args=(self.sp['alpha_1'],#+1
-              self.sp['alpha_2'],#+1
+        args=(self.sp['alpha_1'] + 1,
+              self.sp['alpha_2'] + 1,
               10**self.sp['log10phi*_1'],
-              10**self.sp['log10phi*_2'])
+              10**self.sp['log10phi*_2'],
+              self.sp['D*'])
 
-        N = scipy.integrate.quad(self._integ, x1, x2, args=args)[0]
+        N = scipy.integrate.quad(self._integ, D1, D2, args=args)[0]
 
-        return N# * np.log(10)
+        return N * np.log(10)
 
 
     def N(self, volume, bin_edges):
@@ -364,22 +368,22 @@ class DPL_Mags():
         return N
 
 
-def _CDF(model, D_lowlim, normed = True):
+def _CDF(model, D_lowlim, normed = True, inf_lim=30):
 
     log10Ls = np.arange(model.sp['D*']+5.,D_lowlim-0.01,-0.01)
 
-    CDF = np.array([model.binPhi(log10L,np.inf) for log10L in log10Ls])
+    CDF = np.array([model.binPhi(log10L,inf_lim) for log10L in log10Ls])
 
     if normed: CDF /= CDF[-1]
 
     return log10Ls, CDF
 
 
-def sample(model, volume, D_lowlim):
+def sample(model, volume, D_lowlim, inf_lim=100):
 
-    D, cdf = _CDF(model, D_lowlim, normed=False)
+    D, cdf = _CDF(model, D_lowlim, normed=False, inf_lim=inf_lim)
 
-    n2 = model.binPhi(D_lowlim, np.inf)*volume
+    n2 = model.binPhi(D_lowlim, inf_lim)*volume
 
     # --- Not strictly correct but I can't think of a better approach
     n = np.random.poisson(volume * cdf[-1])
