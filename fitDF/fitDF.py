@@ -41,11 +41,9 @@ class fitter():
             ## expected number of objects from model
             N_exp = self.model.N(obs['volume'], obs['bin_edges'])
 
-            s = np.logical_and(N_exp>0., obs['N']) # technically this should always be true but may break at very low N hence this
+            s = np.logical_and(N_exp>0., obs['N']>0.) # technically this should always be true but may break at very low N hence this
 
-            lnlike += np.nansum(obs['N'][s] * np.log(N_exp[s]) - N_exp[s] - (obs['N'][s]+0.5)*np.log(obs['N'][s])) - np.nansum((np.log(N_exp[s])-np.log(obs['N'][s]))**2)
-
-
+            lnlike += np.nansum(obs['N'][s] * np.log(N_exp[s]) - N_exp[s] - (obs['N'][s]+0.5)*np.log(obs['N'][s])) - np.nansum((np.log10(N_exp[s]) - np.log10(obs['N'][s]))**2)
 
         return lp + lnlike
 
