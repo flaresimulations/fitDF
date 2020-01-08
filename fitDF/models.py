@@ -105,18 +105,10 @@ class Schechter():
         """
         Integrate function between set limits
         """
-<<<<<<< HEAD
-        x1 = 10**(D1 - self.sp['D*'])
-        x2 = 10**(D2 - self.sp['D*'])
-        alpha = self.sp['alpha'] # + 1
 
-        gamma = scipy.integrate.quad(self._integ, x1, x2, args=alpha)[0]
-
-=======
         args = (self.sp['alpha'],self.sp['D*'])
         gamma = scipy.integrate.quad(self._integ, D1, D2, args=args)[0]
-        
->>>>>>> 57ebe4d5f39a10d107c3025225d641fafbc8902a
+
         return gamma * 10**self.sp['log10phi*'] * np.log(10)
 
 
@@ -161,10 +153,6 @@ class Schechter_Mags():
         return x**(a) * np.exp(-x)
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 57ebe4d5f39a10d107c3025225d641fafbc8902a
     def binPhi(self,D1,D2):
         """
         Integrate function between set limits
