@@ -10,7 +10,7 @@ import scipy.misc
 
 class fitter():
 
-    def __init__(self, observations, model, priors, output_directory = 'test'):
+    def __init__(self, observations, model, priors, output_directory = 'test', penalty = 'False'):
 
         print('fitDFv0.1')
 
@@ -21,6 +21,16 @@ class fitter():
         self.priors = priors
         self.parameters = priors.keys()
 
+
+    def lnlikelihood(self, observed, expected, penalty):
+        
+        output = np.nansum(observed * np.log(expected) - expected - (observed+0.5)*np.log(observed))
+        
+        if penalty:
+        
+            output += np.nansum((np.log10(expected) - np.log10(observed))**2)
+            
+        return output
 
     def lnprob(self, params):
 
@@ -42,7 +52,7 @@ class fitter():
 
             s = np.logical_and(N_exp>0., obs['N']>0.) # technically this should always be true but may break at very low N hence this
 
-            lnlike += np.nansum(obs['N'][s] * np.log(N_exp[s]) - N_exp[s] - (obs['N'][s]+0.5)*np.log(obs['N'][s])) - np.nansum((np.log10(N_exp[s]) - np.log10(obs['N'][s]))**2)
+            lnlike += self.lnlikelihood(obs['N'][s], N_exp[s], penalty)
 
         return lp + lnlike
 
