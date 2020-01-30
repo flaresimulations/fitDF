@@ -20,13 +20,14 @@ class fitter():
         self.model = model
         self.priors = priors
         self.parameters = priors.keys()
+        self.penalty = penalty
 
 
-    def lnlikelihood(self, observed, expected, penalty):
+    def lnlikelihood(self, observed, expected):
         
         output = np.nansum(observed * np.log(expected) - expected - (observed+0.5)*np.log(observed))
         
-        if penalty:
+        if self.penalty:
         
             output += np.nansum((np.log10(expected) - np.log10(observed))**2)
             
@@ -52,7 +53,7 @@ class fitter():
 
             s = np.logical_and(N_exp>0., obs['N']>0.) # technically this should always be true but may break at very low N hence this
 
-            lnlike += self.lnlikelihood(obs['N'][s], N_exp[s], penalty)
+            lnlike += self.lnlikelihood(obs['N'][s], N_exp[s])
 
         return lp + lnlike
 
