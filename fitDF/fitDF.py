@@ -23,7 +23,14 @@ class fitter():
         self.penalty = penalty
 
 
-    def lnlikelihood(self, observed, expected):
+    def gaussian_lnlikelihood(self, observed, expected, sigma):
+       
+        output = -0.5 * np.sum((observed - expected) ** 2 / sigma**2 + np.log(sigma**2))
+         
+        return output
+    
+    
+    def poissonian_lnlikelihood(self, observed, expected):
         
         output = np.nansum(observed * np.log(expected) - expected - (observed+0.5)*np.log(observed))
         
@@ -33,7 +40,8 @@ class fitter():
             
         return output
 
-    def lnprob(self, params):
+
+    def lnprob(self, params, lnlikelihood):
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
 
@@ -53,12 +61,20 @@ class fitter():
 
             s = np.logical_and(N_exp>0., obs['N']>0.) # technically this should always be true but may break at very low N hence this
 
-            lnlike += self.lnlikelihood(obs['N'][s], N_exp[s])
+            if 'sigma' in obs.keys():
+                lnlike += lnlikelihood(obs['N'][s], N_exp[s], obs['sigma'][s])
+            else:
+                lnlike += lnlikelihood(obs['N'][s], N_exp[s])
 
         return lp + lnlike
 
 
-    def fit(self, nwalkers = 50, nsamples = 1000, burn = 200, sample_save_ID = 'samples'):
+    def fit(self, nwalkers = 50, nsamples = 1000, 
+            burn = 200, sample_save_ID = 'samples', lnlikelihood=None):
+        
+        # set the log-likelihood method
+        if lnlikelihood is None:
+            lnlikelihood = self.poissonian_lnlikelihood
 
         print('Fitting -------------------------')
 
@@ -70,7 +86,7 @@ class fitter():
 
         # --- Initialize the sampler with the chosen specs. The "a" parameter controls the step size, the default is a=2.
 
-        self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, self.lnprob, args=())
+        self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, self.lnprob, kwargs={'lnlikelihood': lnlikelihood})
 
         pos, prob, state = self.sampler.run_mcmc(p0, burn)
         self.sampler.reset()
