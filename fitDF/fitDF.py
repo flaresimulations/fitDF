@@ -12,7 +12,7 @@ class fitter():
 
     def __init__(self, observations, model, priors, output_directory = 'test', penalty = 'False'):
 
-        print('fitDFv0.1')
+        print('fitDFv0.2')
 
         # TODO: input tests
         self.output_directory = output_directory
@@ -21,6 +21,7 @@ class fitter():
         self.priors = priors
         self.parameters = priors.keys()
         self.penalty = penalty
+        self.lnlikelihood = self.poissonian_lnlikelihood
 
 
     def gaussian_lnlikelihood(self, observed, expected, sigma):
@@ -41,7 +42,7 @@ class fitter():
         return output
 
 
-    def lnprob(self, params, lnlikelihood):
+    def lnprob(self, params):
 
         p = {parameter:params[i] for i,parameter in enumerate(self.parameters)}
 
@@ -62,45 +63,67 @@ class fitter():
             s = np.logical_and(N_exp>0., obs['N']>0.) # technically this should always be true but may break at very low N hence this
 
             if 'sigma' in obs.keys():
-                lnlike += lnlikelihood(obs['N'][s], N_exp[s], obs['sigma'][s])
+                lnlike += self.lnlikelihood(obs['N'][s], N_exp[s], obs['sigma'][s])
             else:
-                lnlike += lnlikelihood(obs['N'][s], N_exp[s])
+                lnlike += self.lnlikelihood(obs['N'][s], N_exp[s])
 
         return lp + lnlike
 
 
     def fit(self, nwalkers = 50, nsamples = 1000, 
-            burn = 200, sample_save_ID = 'samples', lnlikelihood=None):
-        
-        # set the log-likelihood method
-        if lnlikelihood is None:
-            lnlikelihood = self.poissonian_lnlikelihood
+            burn = 200, thin = 15, sample_save_ID = 'samples', 
+            use_autocorr=False, verbose=False):
+        """
+        Run sampler
 
-        print('Fitting -------------------------')
+        Args:
+        nwalkers (int)
+        samples (int)
+        burn (int): manually set burn-in  
+        thin (int): manually set thinning
+        sample_save_ID (str)
+        use_autocorr (bool): use autocorrelation time to set burn and thin parameters
+        verbose (bool)
+        """
+
+        if verbose: print('Fitting -------------------------')
 
         # --- define number of parameters
         self.ndim = len(self.priors.keys())
 
         # --- Choose an initial set of positions for the walkers.
-        p0 = [ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)]
+        p0 = np.asarray([ [self.priors[parameter].rvs() for parameter in self.parameters] for i in range(nwalkers)])
 
-        # --- Initialize the sampler with the chosen specs. The "a" parameter controls the step size, the default is a=2.
+        self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, self.lnprob)
 
-        self.sampler = emcee.EnsembleSampler(nwalkers, self.ndim, self.lnprob, kwargs={'lnlikelihood': lnlikelihood})
+        if verbose:
+            self.sampler.run_mcmc(p0, nsamples, progress=True)
+        else:
+            self.sampler.run_mcmc(p0, nsamples)
 
-        pos, prob, state = self.sampler.run_mcmc(p0, burn)
-        self.sampler.reset()
 
-        self.sampler.run_mcmc(pos, nsamples)
+        try:
+            _autocorr = self.sampler.get_autocorr_time()
+            if verbose: print("Autocorrelation time:", _autocorr)
+        except Exception as e:
+            print(e)
+            _autocorr = None
+        
+        if (_autocorr is not None) & use_autocorr:
+            if verbose: print("Using autocorrelation time to set burn-in and thinning")
+            burn = int(np.max(_autocorr) * 5)
+            thin = int(np.max(_autocorr) / 2)
+            if verbose: print("burn:",burn,"\nthin:",thin)
+        else:
+            if verbose: print("burn:",burn,"\nthin:",thin)
 
         # --- save samples
 
         samples = {}
 
-        chains = self.sampler.chain[:, :, ].reshape((-1, self.ndim))
+        chains = self.sampler.get_chain(discard=burn, thin=thin, flat=True)
 
         for ip, p in enumerate(self.parameters):
-
             samples[p] = chains[:,ip]
 
         self.save_samples(samples,sample_save_ID)
