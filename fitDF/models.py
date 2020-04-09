@@ -355,6 +355,7 @@ class DPL_Mags():
 
         return N
 
+    
 
 def _CDF(model, D_lowlim, normed = True, inf_lim=30):
 
