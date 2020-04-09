@@ -1,4 +1,4 @@
-# fitDF (v0.1)
+# fitDF (v0.2)
 
 Fit a binned distribution function using [emcee](http://dfm.io/emcee/current/) (v3.0).
 
