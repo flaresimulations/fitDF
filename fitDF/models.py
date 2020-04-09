@@ -355,73 +355,7 @@ class DPL_Mags():
 
         return N
 
-
-
-# class PiecewiseLinear():
-#     """
-#     Fit a piecewise linear regression with two parts:
-#     
-#         y1 = m1*x + c1  (x <= x0)
-#         y2 = m2*x + c2  (x > x0)
-#     
-#     where,
-#     
-#         c1 = -m1*x0 + y0
-#         c2 = -m2*x0 + y0
-#         
-#         y0 = c2 + m2*x0 = c1 + m1*x0
-# 
-#     """
-# 
-#     def __init__(self, sp=None):
-# 
-#         if sp is None:
-#             self.sp = {'x0': None, 'y0': None, 'm1': None, 'm2': None}
-#         else:
-#             self.sp = sp
-# 
-# 
-#     def update_params(self, sp):
-#         self.sp = sp
-# 
-# 
-#     def log10phi(self, D):
-#         return np.piecewise(D, [D < self.sp['x0']], [lambda x: sel.sp['m1']*D + \
-#                                                         self.sp['y0'] - self.sp['m1']*self.sp['x0'], 
-#                                                      lambda x: self.sp['m2']*D + self.sp['y0'] - \
-#                                                         self.sp['m2']*self.sp['x0']])
-# 
-# 
-#     @staticmethod
-#     def _integ(x,a,D):
-#         return 10**((a+1)*(x-D)) * np.exp(-10**(x-D))
-# 
-# 
-#     def binPhi(self,D1,D2):
-#         """
-#         Integrate function between set limits
-#         """
-# 
-#         args = (self.sp['alpha'],self.sp['D*'])
-#         gamma = scipy.integrate.quad(self._integ, D1, D2, args=args)[0]
-# 
-#         return gamma * 10**self.sp['log10phi*'] * np.log(10)
-# 
-# 
-#     def N(self, volume, bin_edges):
-#         """
-#         return the exact number of galaxies expected in each bin
-# 
-#         Args:
-#             volume (float)
-#             bin_edges (array, float)
-#         """
-#         N = np.array([self.binPhi(x1,x2) for x1,x2 \
-#              in zip(bin_edges[:-1],bin_edges[1:])])*volume
-# 
-#         return N
-
-
+    
 
 def _CDF(model, D_lowlim, normed = True, inf_lim=30):
 
